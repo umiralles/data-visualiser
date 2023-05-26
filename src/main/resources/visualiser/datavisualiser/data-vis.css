@@ -1,0 +1,39 @@
+.scene-grid {
+    -fx-pref-width: 1116;
+    -fx-pref-height: 720;
+}
+
+.scene-title {
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+}
+
+.scene-menu-button {
+    -fx-alignment: center-left;
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+    -fx-border: none;
+    -fx-pref-height: 36;
+}
+
+.scene-menu-button:hover {
+    -fx-underline: true;
+}
+
+.home-title {
+    -fx-font-size: 24;
+    -fx-font-weight: bold;
+}
+
+.model-select-text {
+    -fx-font-size: 16;
+    -fx-font-weight: bold;
+}
+
+.model-select-entity-box {
+    -fx-fill: transparent;
+}
+
+.model-select-label {
+    -fx-font-size: 15;
+ }

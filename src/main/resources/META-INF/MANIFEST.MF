@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Main-Class: visualiser.datavisualiser.Launcher
+Class-Path: javafx-base-20-ea+4-linux.jar javafx-graphics-20-ea+4-linux.
+ jar controlsfx-11.1.2.jar javafx-fxml-20-ea+4.jar formsfx-core-11.5.0.j
+ ar javafx-controls-20-ea+4.jar javafx-graphics-20-ea+4.jar javafx-contr
+ ols-20-ea+4-linux.jar javafx-base-20-ea+4.jar javafx-fxml-20-ea+4-linux
+ .jar ikonli-javafx-12.3.1.jar ikonli-core-12.3.1.jar
+
