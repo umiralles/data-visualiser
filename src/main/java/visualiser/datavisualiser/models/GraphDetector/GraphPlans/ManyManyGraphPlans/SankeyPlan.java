@@ -2,6 +2,7 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphP
 
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.List;
 
@@ -18,17 +19,19 @@ public class SankeyPlan extends ManyManyGraphPlan {
     private static final List<AttributeType> mandatories = List.of(AttributeType.SCALAR);
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
-    private SankeyPlan(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        super(k1Att, k2Att, orderedAtts);
+    private SankeyPlan(PrimaryKey k1, PrimaryKey k2,
+                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static ManyManyGraphPlan getDummyInstance() {
-        return new SankeyPlan(null, null, null);
+        return new SankeyPlan(null, null, null, null);
     }
 
     @Override
-    public ManyManyGraphPlan getInstance(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        return new SankeyPlan(k1Att, k2Att, orderedAtts);
+    public ManyManyGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
+                                         List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new SankeyPlan(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

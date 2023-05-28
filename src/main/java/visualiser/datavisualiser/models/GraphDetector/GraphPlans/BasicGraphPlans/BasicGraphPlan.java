@@ -1,40 +1,31 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.*;
 
 public abstract class BasicGraphPlan extends GraphPlan {
 
-    private final Attribute kAtt;
-    private final List<Attribute> orderedAtts;
+    private final PrimaryKey k1;
+    private final List<Attribute> orderedMandatoryAtts;
+    private final List<Attribute> orderedOptionalAtts;
 
-    BasicGraphPlan(Attribute kAtt, List<Attribute> orderedAtts) {
-        this.kAtt = kAtt;
-        this.orderedAtts = orderedAtts;
+    BasicGraphPlan(PrimaryKey k1, List<Attribute> orderedMandatoryAtts, List<Attribute> orderedOptionalAtts) {
+        this.k1 = k1;
+        this.orderedMandatoryAtts = orderedMandatoryAtts;
+        this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
-    @Override
-    public String getOrderedAttributesRepresentation() {
-        StringBuilder sb = new StringBuilder(kAtt.getTable());
-        sb.append(": ").append(kAtt.getColumn());
-
-        for (Attribute att : orderedAtts) {
-            sb.append(" -> ").append(att.getColumn());
-        }
-
-        return sb.toString();
+    public List<Attribute> getOrderedMandatories() {
+        return orderedMandatoryAtts;
     }
 
-    @Override
-    public List<String> getOrderedColumnNames() {
-        List<String> columns = new ArrayList<>();
-        columns.add(kAtt.getColumn());
-        orderedAtts.forEach(att -> columns.add(att.getColumn()));
-
-        return columns;
+    public List<Attribute> getOrderedOptionals() {
+        return orderedOptionalAtts;
     }
 
     /* MUST BE OVERWRITTEN */
@@ -43,7 +34,8 @@ public abstract class BasicGraphPlan extends GraphPlan {
         return null;
     }
 
-    public abstract BasicGraphPlan getInstance(Attribute kAtt, List<Attribute> orderedAtts);
+    public abstract BasicGraphPlan getInstance(PrimaryKey k1,
+                                               List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts);
 
     public abstract String getPlanName();
     public abstract int getKLowerLim();
@@ -78,6 +70,6 @@ public abstract class BasicGraphPlan extends GraphPlan {
 
     @Override
     public int hashCode() {
-        return Objects.hash(kAtt, orderedAtts);
+        return Objects.hash(k1, orderedMandatoryAtts, orderedOptionalAtts);
     }
 }

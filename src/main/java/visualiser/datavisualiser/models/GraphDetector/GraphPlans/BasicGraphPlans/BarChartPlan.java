@@ -3,6 +3,7 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlan
 import visualiser.datavisualiser.models.GoogleChart.ChartType;
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,17 +17,19 @@ public class BarChartPlan extends BasicGraphPlan {
     private static final List<AttributeType> mandatories = List.of(AttributeType.SCALAR);
     private static final List<AttributeType> optionals = Collections.emptyList();
 
-    private BarChartPlan(Attribute kAtt, List<Attribute> orderedAtts) {
-        super(kAtt, orderedAtts);
+    private BarChartPlan(PrimaryKey k1,
+                          List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static BasicGraphPlan getDummyInstance() {
-        return new BarChartPlan(null, null);
+        return new BarChartPlan(null, null, null);
     }
 
     @Override
-    public BasicGraphPlan getInstance(Attribute kAtt, List<Attribute> orderedAtts) {
-        return new BarChartPlan(kAtt, orderedAtts);
+    public BasicGraphPlan getInstance(PrimaryKey k1,
+                                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new BarChartPlan(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

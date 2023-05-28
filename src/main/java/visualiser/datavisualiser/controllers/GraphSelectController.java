@@ -1,14 +1,19 @@
 package visualiser.datavisualiser.controllers;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
+import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
+import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.ERModel;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
 import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
@@ -20,29 +25,28 @@ import java.net.URL;
 import java.util.*;
 
 public class GraphSelectController implements Initializable {
+
     @FXML
     private ChoiceBox<String> graphChoice;
 
     @FXML
-    private ChoiceBox<String> implementationChoice;
+    public VBox attributesVBox;
+
+    /* Templates for attributes choices in the attributesVBox */
+    @FXML
+    public HBox attributeHBoxTemplate;
 
     @FXML
-    private Button generateButton;
+    public Label typeLabelTemplate;
 
-    GraphDetector gd = null;
+    @FXML
+    public ChoiceBox<String> typeChoiceBoxTemplate;
 
-    Map<String, GraphPlan> chosenPlans = null;
+    private GraphDetector gd = null;
+
+    private List<GraphPlan> chosenPlans = null;
 
     private GraphPlan chosenPlan = null;
-
-    @FXML
-    public void onGenerateButtonClick() {
-        User user = ViewUtils.receiveData();
-        user.setGraphDetector(gd);
-        user.setPlan(chosenPlan);
-        ViewUtils.sendData(user);
-        ViewUtils.switchTo(View.DATA_VIS);
-    }
 
     @FXML
     public void onHomeButtonClick() {
@@ -101,20 +105,51 @@ public class GraphSelectController implements Initializable {
         }
 
         graphChoice.setOnAction(event -> {
-            chosenPlans = new HashMap<>();
-            implementationChoice.getItems().clear();
+            chosenPlans = new ArrayList<>(plans.get(graphChoice.getValue()));
+            chosenPlan = chosenPlans.get(0);
 
-            for (GraphPlan plan : plans.get(graphChoice.getValue())) {
-                chosenPlans.put(plan.getOrderedAttributesRepresentation(), plan);
-                implementationChoice.getItems().add(plan.getOrderedAttributesRepresentation());
+            List<AttributeType> orderedTypes = chosenPlan.getOrderedAttributeTypes();
+            List<Attribute> orderedAtts = chosenPlan.getOrderedAttributes();
+
+            for (int i = 0; i < orderedTypes.size(); i++) {
+                AttributeType type = orderedTypes.get(i);
+                Attribute attribute = orderedAtts.get(i);
+
+                HBox typeBox = new HBox();
+                typeBox.setAlignment(attributeHBoxTemplate.getAlignment());
+                typeBox.setSpacing(attributeHBoxTemplate.getSpacing());
+
+                // Copy the children from the original HBox
+                ObservableList<Node> children = attributeHBoxTemplate.getChildren();
+                for (Node child : children) {
+                    if (child instanceof Label template) {
+                        // Label case:
+                        Label dupLabel = new Label();
+                        dupLabel.setText(type.name() + ":");
+
+                        dupLabel.getStyleClass().clear();
+                        dupLabel.getStyleClass().add(template.getStyleClass().get(0));
+
+                        typeBox.getChildren().add(dupLabel);
+
+                        HBox.setMargin(dupLabel, HBox.getMargin(template));
+
+                    } else if (child instanceof ChoiceBox<?> template) {
+                        // ChoiceBox case:
+                        ChoiceBox<String> dupChoice = new ChoiceBox<>();
+
+
+                        typeBox.getChildren().add(dupChoice);
+
+                        HBox.setMargin(dupChoice, HBox.getMargin(template));
+                    }
+                }
+
+
+                attributesVBox.getChildren().add(typeBox);
             }
 
-            implementationChoice.setDisable(false);
-        });
-
-        implementationChoice.setOnAction(event -> {
-            chosenPlan = chosenPlans.get(implementationChoice.getValue());
-            generateButton.setDisable(false);
+            for (AttributeType mand : chosenPlan.)
         });
     }
 }

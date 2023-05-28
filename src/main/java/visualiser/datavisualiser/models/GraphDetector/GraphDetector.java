@@ -122,6 +122,7 @@ public class GraphDetector {
         return plans;
     }
 
+    // For WebView of width 775, height 500: width 765, height 480
     public JSONObject getGoogleChartOptions() {
         return new JSONObject()
                 .put("title", "New Chart")

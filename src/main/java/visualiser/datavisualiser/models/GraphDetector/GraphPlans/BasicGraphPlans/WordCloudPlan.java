@@ -1,7 +1,10 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ChordPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.List;
 
@@ -14,17 +17,19 @@ public class WordCloudPlan extends BasicGraphPlan {
     private static final List<AttributeType> mandatories = List.of(AttributeType.SCALAR);
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
-    private WordCloudPlan(Attribute kAtt, List<Attribute> orderedAtts) {
-        super(kAtt, orderedAtts);
+    private WordCloudPlan(PrimaryKey k1,
+                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static BasicGraphPlan getDummyInstance() {
-        return new WordCloudPlan(null, null);
+        return new WordCloudPlan(null, null, null);
     }
 
     @Override
-    public BasicGraphPlan getInstance(Attribute kAtt, List<Attribute> orderedAtts) {
-        return new WordCloudPlan(kAtt, orderedAtts);
+    public BasicGraphPlan getInstance(PrimaryKey k1,
+                                         List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new WordCloudPlan(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

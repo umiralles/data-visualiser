@@ -1,45 +1,33 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans;
 
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans.WeakGraphPlan;
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.*;
 
 public abstract class ManyManyGraphPlan extends GraphPlan {
 
-    private final Attribute k1Att;
-    private final Attribute k2Att;
-    private final List<Attribute> orderedAtts;
+    private final PrimaryKey k1;
+    private final PrimaryKey k2;
+    private final List<Attribute> orderedMandatoryAtts;
+    private final List<Attribute> orderedOptionalAtts;
 
-    ManyManyGraphPlan(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        this.k1Att = k1Att;
-        this.k2Att = k2Att;
-        this.orderedAtts = orderedAtts;
+    ManyManyGraphPlan(PrimaryKey k1, PrimaryKey k2, List<Attribute> orderedMandatoryAtts, List<Attribute> orderedOptionalAtts) {
+        this.k1 = k1;
+        this.k2 = k2;
+        this.orderedMandatoryAtts = orderedMandatoryAtts;
+        this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
-    @Override
-    public String getOrderedAttributesRepresentation() {
-        StringBuilder sb = new StringBuilder(k1Att.getTable());
-        sb.append(".").append(k1Att.getColumn())
-                .append(" + ").append(k2Att.getTable())
-                .append(".").append(k2Att.getColumn());
-
-        for (Attribute att : orderedAtts) {
-            sb.append(" -> ").append(att.getColumn());
-        }
-
-        return sb.toString();
+    public List<Attribute> getOrderedMandatories() {
+        return orderedMandatoryAtts;
     }
 
-    @Override
-    public List<String> getOrderedColumnNames() {
-        List<String> columns = new ArrayList<>();
-        columns.add(k1Att.getColumn());
-        columns.add(k2Att.getColumn());
-        orderedAtts.forEach(att -> columns.add(att.getColumn()));
-
-        return columns;
+    public List<Attribute> getOrderedOptionals() {
+        return orderedOptionalAtts;
     }
 
     /* MUST BE OVERWRITTEN */
@@ -48,7 +36,8 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
         return null;
     }
 
-    public abstract ManyManyGraphPlan getInstance(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts);
+    public abstract ManyManyGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
+                                              List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts);
 
     public abstract String getPlanName();
     public abstract int getK1LowerLim();
@@ -62,16 +51,16 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
     public abstract List<AttributeType> getOptionals();
 
     // TODO: add reflexive stuff
-    public Set<GraphPlan> fitAttributesToPlan(Attribute k1Att, Attribute k2Att, List<Attribute> unorderedAtts) {
-        Set<GraphPlan> plans = new HashSet<>();
-        List<List<Attribute>> possibleOrders = orderAttributesByType(k1Att, k2Att, unorderedAtts);
-
-        for (List<Attribute> possibleOrder : possibleOrders) {
-            plans.add(getInstance(k1Att, k2Att, possibleOrder));
-        }
-
-        return plans;
-    }
+//    public Set<GraphPlan> fitAttributesToPlan(Attribute k1Att, Attribute k2Att, List<Attribute> unorderedAtts) {
+//        Set<GraphPlan> plans = new HashSet<>();
+//        List<List<Attribute>> possibleOrders = orderAttributesByType(k1Att, k2Att, unorderedAtts);
+//
+//        for (List<Attribute> possibleOrder : possibleOrders) {
+//            plans.add(getInstance(k1Att, k2Att, possibleOrder));
+//        }
+//
+//        return plans;
+//    }
 
     private List<List<Attribute>> orderAttributesByType(Attribute k1Att, Attribute k2Att, List<Attribute> atts) {
         int attSize = atts.size();
@@ -89,6 +78,6 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
 
     @Override
     public int hashCode() {
-        return Objects.hash(k1Att, orderedAtts);
+        return Objects.hash(k1, k2, orderedMandatoryAtts, orderedOptionalAtts);
     }
 }

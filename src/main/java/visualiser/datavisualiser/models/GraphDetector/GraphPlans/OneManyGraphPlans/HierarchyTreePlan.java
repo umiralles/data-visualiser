@@ -2,6 +2,7 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPl
 
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,17 +19,19 @@ public class HierarchyTreePlan extends OneManyGraphPlan {
     private static final List<AttributeType> mandatories = Collections.emptyList();
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
-    private HierarchyTreePlan(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        super(k1Att, k2Att, orderedAtts);
+    private HierarchyTreePlan(PrimaryKey k1, PrimaryKey k2,
+                              List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static OneManyGraphPlan getDummyInstance() {
-        return new HierarchyTreePlan(null, null, null);
+        return new HierarchyTreePlan(null, null, null, null);
     }
 
     @Override
-    public OneManyGraphPlan getInstance(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        return new HierarchyTreePlan(k1Att, k2Att, orderedAtts);
+    public OneManyGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
+                                        List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new HierarchyTreePlan(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

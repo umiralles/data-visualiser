@@ -2,6 +2,7 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans
 
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,17 +20,19 @@ public class SpiderChartPlan extends WeakGraphPlan {
     private static final List<AttributeType> mandatories = List.of(AttributeType.SCALAR);
     private static final List<AttributeType> optionals = Collections.emptyList();
 
-    private SpiderChartPlan(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        super(k1Att, k2Att, orderedAtts);
+    private SpiderChartPlan(PrimaryKey k1, PrimaryKey k2,
+                            List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static WeakGraphPlan getDummyInstance() {
-        return new SpiderChartPlan(null, null, null);
+        return new SpiderChartPlan(null, null, null, null);
     }
 
     @Override
-    public WeakGraphPlan getInstance(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        return new SpiderChartPlan(k1Att, k2Att, orderedAtts);
+    public WeakGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
+                                     List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new SpiderChartPlan(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

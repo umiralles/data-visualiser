@@ -1,7 +1,10 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans;
 
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans.OneManyGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans.TreeMapPlan;
 import visualiser.datavisualiser.models.RelationalModel.AttributeType;
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
 
 import java.util.List;
 
@@ -18,17 +21,19 @@ public class ChordPlan extends ManyManyGraphPlan {
     private static final List<AttributeType> mandatories = List.of(AttributeType.SCALAR);
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
-    private ChordPlan(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        super(k1Att, k2Att, orderedAtts);
+    private ChordPlan(PrimaryKey k1, PrimaryKey k2,
+                        List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        super(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     public static ManyManyGraphPlan getDummyInstance() {
-        return new ChordPlan(null, null, null);
+        return new ChordPlan(null, null, null, null);
     }
 
     @Override
-    public ManyManyGraphPlan getInstance(Attribute k1Att, Attribute k2Att, List<Attribute> orderedAtts) {
-        return new ChordPlan(k1Att, k2Att, orderedAtts);
+    public ManyManyGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
+                                        List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+        return new ChordPlan(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
     @Override

@@ -9,18 +9,10 @@ import java.util.stream.Collectors;
 
  public abstract class GraphPlan {
 
-     public abstract String getOrderedAttributesRepresentation();
-     public abstract List<String> getOrderedColumnNames();
-
      // Can be overwritten
      public ChartType getGoogleChartType() {
          return ChartType.NOT_SUPPORTED;
      }
-
-     // TODO:
-     //  > have some way of determining the VisSchemaPattern
-     //  > then match the GraphPlan to the correct one here?
-     //  > return a GraphPlan which can then be used to generate the graph
 
      protected static List<List<Attribute>> findMandatoryAndOptionalAttsOrder(List<Attribute> atts,
                                                                               List<AttributeType> mandatories,

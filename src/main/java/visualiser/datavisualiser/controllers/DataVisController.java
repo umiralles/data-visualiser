@@ -12,10 +12,13 @@ import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.RelationalModel.ERModel;
+import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class DataVisController implements Initializable {
@@ -31,7 +34,11 @@ public class DataVisController implements Initializable {
 
         try {
             DataTable unorderedData = gd.getData(rm);
-            DataTable orderedData = unorderedData.reOrderColumns(plan.getOrderedColumnNames());
+            List<String> orderedColumnNames = List.of("not working");
+//            List<String> orderedColumnNames = plan.getOrderedAttributes().stream().map(Attribute::getColumn).toList();
+//            List<String> orderedColumnNames = plan.getOrderedAttributes().stream()
+//                    .map(att -> att.getTable() + "." + att.getColumn()).toList();
+            DataTable orderedData = unorderedData.reOrderColumns(orderedColumnNames);
 
             GoogleChart chart = new GoogleChart("planChart", orderedData, gd.getGoogleChartOptions(), plan.getGoogleChartType());
 //            chart.writeJson("html/chart.json");

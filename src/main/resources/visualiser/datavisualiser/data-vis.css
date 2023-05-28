@@ -37,3 +37,9 @@
 .model-select-label {
     -fx-font-size: 15;
  }
+
+.graph-select-type-label {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+
+}
