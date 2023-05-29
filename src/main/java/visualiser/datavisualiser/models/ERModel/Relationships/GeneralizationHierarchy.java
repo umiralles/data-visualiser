@@ -1,6 +1,6 @@
-package visualiser.datavisualiser.models.RelationalModel.Relationships;
+package visualiser.datavisualiser.models.ERModel.Relationships;
 
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.util.HashSet;
 

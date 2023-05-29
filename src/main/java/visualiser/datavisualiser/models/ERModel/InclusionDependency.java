@@ -1,8 +1,8 @@
-package visualiser.datavisualiser.models.RelationalModel;
+package visualiser.datavisualiser.models.ERModel;
 
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.util.HashSet;
 import java.util.Objects;

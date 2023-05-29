@@ -1,8 +1,8 @@
-package visualiser.datavisualiser.models.RelationalModel.Relationships;
+package visualiser.datavisualiser.models.ERModel.Relationships;
 
-import visualiser.datavisualiser.models.RelationalModel.InclusionDependency;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.InclusionDependency;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.util.Objects;
 

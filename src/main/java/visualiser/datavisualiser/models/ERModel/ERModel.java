@@ -1,17 +1,17 @@
-package visualiser.datavisualiser.models.RelationalModel;
+package visualiser.datavisualiser.models.ERModel;
 
 import visualiser.datavisualiser.models.GoogleChart.DataCell;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Entities.EntityType;
-import visualiser.datavisualiser.models.RelationalModel.Entities.StrongEntityType;
-import visualiser.datavisualiser.models.RelationalModel.Entities.WeakEntityType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.ForeignAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
-import visualiser.datavisualiser.models.RelationalModel.Relations.RelationType;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.*;
+import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
+import visualiser.datavisualiser.models.ERModel.Entities.StrongEntityType;
+import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.ForeignAttribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relations.RelationType;
+import visualiser.datavisualiser.models.ERModel.Relationships.*;
 
 import java.sql.*;
 import java.util.*;
@@ -114,11 +114,23 @@ public class ERModel {
     }
 
     public BinaryRelationship getBinaryRelationship(InputAttribute k1, InputAttribute k2) {
-        return (BinaryRelationship) relationships.get(BinaryRelationship.generateName(k1.table(), k1.column(), k2.table(), k2.column()));
+        Relationship rel = relationships.get(BinaryRelationship.generateName(k1.table(), k1.column(), k2.table(), k2.column()));
+
+        if (rel instanceof BinaryRelationship binRel) {
+            return binRel;
+        }
+
+        return null;
     }
 
     public NAryRelationship getNAryRelationship(Relation a, Relation b) {
-        return (NAryRelationship) relationships.get(NAryRelationship.generateName(a, b));
+        Relationship rel = relationships.get(NAryRelationship.generateName(a, b));
+
+        if (rel instanceof NAryRelationship nAryRel) {
+            return nAryRel;
+        }
+
+        return null;
     }
 
     public HashMap<String, GeneralizationHierarchy> getHierarchies() {
@@ -179,7 +191,12 @@ public class ERModel {
                 String column = resCols.getString("COLUMN_NAME");
                 String type = resCols.getString("TYPE_NAME");
 
-                currOtherCols.add(new Attribute(table, column, DBType.findType(type)));
+                DBType dbType = DBType.findType(type);
+                if (dbType == null) {
+                    throw new IllegalStateException("Representation " + type + " is not included in " + DBType.class);
+                }
+
+                currOtherCols.add(new Attribute(table, column, dbType));
             }
             resCols.close();
 
@@ -373,7 +390,7 @@ public class ERModel {
                     }
 
                     if (otherRelation.isEntityRelation()) {
-                        List<ArrayList<PrimaryAttribute>> sharedPrimaries = relation.findSharedPrimaryAttributes(otherRelation);
+                        List<List<PrimaryAttribute>> sharedPrimaries = relation.findSharedPrimaryAttributes(otherRelation);
 
                         // Add attributes from relation (not otherRelation)
                         k1.addAll(sharedPrimaries.get(0));
@@ -443,7 +460,7 @@ public class ERModel {
                 }
 
                 if (otherRelation.isEntityRelation()) {
-                    List<ArrayList<PrimaryAttribute>> sharedPrimaries = relation.findSharedPrimaryAttributes(otherRelation);
+                    List<List<PrimaryAttribute>> sharedPrimaries = relation.findSharedPrimaryAttributes(otherRelation);
 
                     // Add attributes from relation (not otherRelation)
                     k1.addAll(sharedPrimaries.get(0));
@@ -491,10 +508,10 @@ public class ERModel {
                         continue;
                     }
 
-                    List<ArrayList<Attribute>> sharedAttributes = otherRelation.findSharedPrimaryAttributes(relation.getPrimaryKeyAtts());
+                    List<List<Attribute>> sharedAttributes = otherRelation.findSharedPrimaryAttributes(relation.getPrimaryKeyAtts());
 
-                    ArrayList<Attribute> otherRelationAtts = sharedAttributes.get(0);
-                    ArrayList<Attribute> relationAtts = sharedAttributes.get(1);
+                    List<Attribute> otherRelationAtts = sharedAttributes.get(0);
+                    List<Attribute> relationAtts = sharedAttributes.get(1);
 
                     for (int i = 0; i < relationAtts.size(); i++) {
                         Attribute pka = relationAtts.get(i);
@@ -526,9 +543,9 @@ public class ERModel {
                         || relation.getType() == RelationType.WEAK)
                         && otherRelation.isEntityRelation()) {
 
-                    List<ArrayList<Attribute>> sharedAttributes = otherRelation.findSharedPrimaryAttributes(relation.getPrimaryKeyAtts());
-                    ArrayList<Attribute> relationAtts = sharedAttributes.get(0);
-                    ArrayList<Attribute> otherRelationAtts = sharedAttributes.get(1);
+                    List<List<Attribute>> sharedAttributes = otherRelation.findSharedPrimaryAttributes(relation.getPrimaryKeyAtts());
+                    List<Attribute> relationAtts = sharedAttributes.get(0);
+                    List<Attribute> otherRelationAtts = sharedAttributes.get(1);
 
                     for (int i = 0; i < relationAtts.size(); i++) {
                         Attribute pKAtt = relationAtts.get(i);

@@ -1,6 +1,6 @@
-package visualiser.datavisualiser.models.RelationalModel.Keys;
+package visualiser.datavisualiser.models.ERModel.Keys;
 
-import visualiser.datavisualiser.models.RelationalModel.DBType;
+import visualiser.datavisualiser.models.ERModel.DBType;
 
 import java.util.Objects;
 
@@ -35,6 +35,11 @@ public class Attribute {
 
     public boolean isAttribute(Attribute attribute) {
         return table.equals(attribute.getTable()) && column.equals(attribute.getColumn());
+    }
+
+    @Override
+    public String toString() {
+        return getTable() + "." + getColumn();
     }
 
     @Override

@@ -1,8 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans;
 
 import visualiser.datavisualiser.models.GoogleChart.ChartType;
-import visualiser.datavisualiser.models.RelationalModel.AttributeType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.AttributeType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 
 import java.util.*;
 import java.util.stream.Collectors;

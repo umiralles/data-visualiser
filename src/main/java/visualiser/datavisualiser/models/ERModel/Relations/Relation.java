@@ -1,9 +1,9 @@
-package visualiser.datavisualiser.models.RelationalModel.Relations;
+package visualiser.datavisualiser.models.ERModel.Relations;
 
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.ForeignAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.ForeignAttribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -224,13 +224,13 @@ public class Relation {
 
     // getSharedPrimaryAttributes[0] = this attributes
     // getSharedPrimaryAttributes[1] = relation attributes
-    public List<ArrayList<PrimaryAttribute>> findSharedPrimaryAttributes(Relation relation) {
+    public List<List<PrimaryAttribute>> findSharedPrimaryAttributes(Relation relation) {
         return primaryKey.sharedAttributes(relation.primaryKey);
     }
 
     // getSharedPrimaryAttributes[0] = this attributes
     // getSharedPrimaryAttributes[1] = relation attributes
-    public List<ArrayList<Attribute>> findSharedPrimaryAttributes(HashSet<? extends Attribute> attributes) {
+    public List<List<Attribute>> findSharedPrimaryAttributes(HashSet<? extends Attribute> attributes) {
         return primaryKey.sharedAttributes(attributes);
     }
 

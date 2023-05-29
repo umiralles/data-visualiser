@@ -8,12 +8,12 @@ import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.Entities.EntityType;
-import visualiser.datavisualiser.models.RelationalModel.Entities.WeakEntityType;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.BinaryRelationship;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.NAryRelationship;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
+import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;

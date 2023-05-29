@@ -1,4 +1,4 @@
-package visualiser.datavisualiser.models.RelationalModel;
+package visualiser.datavisualiser.models.ERModel;
 
 import visualiser.datavisualiser.models.GoogleChart.DataType;
 
@@ -18,7 +18,7 @@ public enum DBType {
     DATE(AttributeType.TEMPORAL, DataType.DATE, Date.class, "date"),
     TIME(AttributeType.TEMPORAL, DataType.TIMEOFDAY, Timestamp.class),
     TIMESTAMP(AttributeType.TEMPORAL, DataType.DATETIME, Timestamp.class),
-    INT(AttributeType.SCALAR, DataType.INT, Integer.class, "int4"),
+    INT(AttributeType.SCALAR, DataType.INT, Integer.class, "int4", "int2"),
     DOUBLE(AttributeType.SCALAR, DataType.DOUBLE, Double.class),
     FLOAT(AttributeType.SCALAR, DataType.FLOAT, Float.class, "numeric"),
     LONG(AttributeType.SCALAR, null, Long.class),

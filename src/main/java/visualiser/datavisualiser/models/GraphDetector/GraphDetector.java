@@ -6,9 +6,9 @@ import visualiser.datavisualiser.models.GoogleChart.DataCell;
 import visualiser.datavisualiser.models.GoogleChart.DataTable;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.*;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -86,14 +86,14 @@ public class GraphDetector {
                 }
 
                 planName = dummyPlan.getPlanName();
-                typePlans = dummyPlan.fitAttributesToPlan(k, as);
+//                typePlans = dummyPlan.fitAttributesToPlan(k, as);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
 
-            if (!typePlans.isEmpty()) {
-                plans.put(planName, typePlans);
-            }
+//            if (!typePlans.isEmpty()) {
+//                plans.put(planName, typePlans);
+//            }
         }
 
         as.add(k);

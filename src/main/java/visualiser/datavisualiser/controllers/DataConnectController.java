@@ -5,8 +5,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.InclusionDependency;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.InclusionDependency;
 import visualiser.datavisualiser.models.User;
 
 import java.util.ArrayList;

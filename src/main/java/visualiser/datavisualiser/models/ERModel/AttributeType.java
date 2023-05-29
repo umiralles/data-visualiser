@@ -1,6 +1,6 @@
-package visualiser.datavisualiser.models.RelationalModel;
+package visualiser.datavisualiser.models.ERModel;
 
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 
 import java.util.List;
 import java.util.stream.IntStream;

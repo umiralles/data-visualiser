@@ -1,4 +1,4 @@
-package visualiser.datavisualiser.models.RelationalModel.Keys;
+package visualiser.datavisualiser.models.ERModel.Keys;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +23,16 @@ public class PrimaryKey {
 
     public int size() {
         return pAttributes.size();
+    }
+
+    public String getAttributesRepresentation() {
+        StringBuilder sb = new StringBuilder();
+        for (PrimaryAttribute att : pAttributes) {
+            sb.append(att.getColumn());
+            sb.append(" + ");
+        }
+
+        return sb.substring(0, sb.length() - 3);
     }
 
     // Returns the foreign attribute version of primary attributes that are also foreign keys
@@ -64,9 +74,9 @@ public class PrimaryKey {
     // Has same functionality as sharedAttributes below, but preserves PrimaryAttribute class
     // sharedAttribute[0] = this attributes
     // sharedAttribute[1] = otherKey attributes
-    public List<ArrayList<PrimaryAttribute>> sharedAttributes(PrimaryKey otherKey) {
-        ArrayList<PrimaryAttribute> thisAttributes = new ArrayList<>();
-        ArrayList<PrimaryAttribute> otherKeyAttributes = new ArrayList<>();
+    public List<List<PrimaryAttribute>> sharedAttributes(PrimaryKey otherKey) {
+        List<PrimaryAttribute> thisAttributes = new ArrayList<>();
+        List<PrimaryAttribute> otherKeyAttributes = new ArrayList<>();
 
         for (PrimaryAttribute otherAtt : otherKey.pAttributes) {
             PrimaryAttribute thisAtt = findInPAttributes(otherAtt);
@@ -82,9 +92,9 @@ public class PrimaryKey {
 
     // sharedAttribute[0] = this attributes
     // sharedAttribute[1] = otherKey attributes
-    public List<ArrayList<Attribute>> sharedAttributes(HashSet<? extends Attribute> otherAttributes) {
-        ArrayList<Attribute> thisAttributes = new ArrayList<>();
-        ArrayList<Attribute> otherKeyAttributes = new ArrayList<>();
+    public List<List<Attribute>> sharedAttributes(HashSet<? extends Attribute> otherAttributes) {
+        List<Attribute> thisAttributes = new ArrayList<>();
+        List<Attribute> otherKeyAttributes = new ArrayList<>();
 
         for (Attribute otherAtt : otherAttributes) {
             PrimaryAttribute thisAtt = findInPAttributes(otherAtt);

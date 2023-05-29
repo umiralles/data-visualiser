@@ -1,10 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ChordPlan;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
-import visualiser.datavisualiser.models.RelationalModel.AttributeType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.ERModel.AttributeType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 
 import java.util.List;
 

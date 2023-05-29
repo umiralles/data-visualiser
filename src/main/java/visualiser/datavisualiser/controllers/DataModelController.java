@@ -1,44 +1,43 @@
 package visualiser.datavisualiser.controllers;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
+import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
 import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.Entities.EntityType;
-import visualiser.datavisualiser.models.RelationalModel.Entities.WeakEntityType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.BinaryRelationship;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.NAryRelationship;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.Relationship;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
+import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DataModelController implements Initializable {
 
     private static final String NOT_SELECTED = "N/A";
-
-    private static final String NO_RELATIONSHIP = "No relationship found.";
-    private static final String BASIC_RELATIONSHIP = "Basic Relationship";
-    private static final String WEAK_RELATIONSHIP = "Weak Relationship";
-    private static final String BINARY_RELATIONSHIP = "Binary Relationship";
-    private static final String NARY_RELATIONSHIP = "N-Ary Relationship";
-    private static final String REFLEXIVE_RELATIONSHIP = "Reflexive Relationship";
+    private static final String DEFAULT_LABEL = "...";
+    private static final String VIS_SCHEMA_SEPARATOR = ": ";
 
     @FXML
     private ChoiceBox<String> entity1Choice;
@@ -51,9 +50,8 @@ public class DataModelController implements Initializable {
 
     @FXML
     private Label entity1Label;
-
     @FXML
-    private ChoiceBox<String> k1Choice;
+    public Text k1Text;
 
     @FXML
     private ChoiceBox<String> entity2Choice;
@@ -68,38 +66,54 @@ public class DataModelController implements Initializable {
     private Label entity2Label;
 
     @FXML
-    private ChoiceBox<String> k2Choice;
+    public Text k2Text;
 
     @FXML
-    private ChoiceBox<String> addAttributesChoice;
+    public ChoiceBox<String> visSchemaChoice;
 
     @FXML
-    private VBox addAttributesBox;
+    private VBox addAttributesVBox;
 
     @FXML
-    private Label relationshipLabel;
+    public HBox attributeHBoxTemplate;
 
     @FXML
     private Button genGraphsButton;
 
     private EntityType selectedE1 = null;
-    private PrimaryAttribute selectedK1 = null;
     private EntityType selectedE2 = null;
-    private PrimaryAttribute selectedK2 = null;
     private VisSchemaPattern currVisPattern = null;
     private Relationship currRelationship = null;
-    private List<Attribute> selectedAtts = null;
+    private Map<String, Attribute> currAtts = new HashMap<>();
 
     @FXML
     private void onGenGraphsButtonClick() {
+        GraphDetector gd = null;
+        switch (currVisPattern) {
+            case BASIC_ENTITY -> {
+//                gd = GraphDetector.generateBasicPlans(rm, new InputAttribute(k1), inpAtts);
+            }
+            case WEAK_ENTITY -> {
+                // Possibly not the right way round?
+//                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+            }
+            case ONE_MANY_REL -> {
+//                gd = GraphDetector.generateOneManyPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+            }
+            case MANY_MANY_REL -> {
+//                gd = GraphDetector.generateManyManyPlans(rm, false, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+            }
+            case REFLEXIVE -> {
+//                gd = GraphDetector.generateManyManyPlans(rm, true, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+            }
+        }
+
+        if (gd == null) {
+            // TODO: no graphs
+            return;
+        }
+
         User user = ViewUtils.receiveData();
-
-        user.setVisSchemaPattern(currVisPattern);
-        user.setRelationship(currRelationship);
-        user.setK1(selectedK1);
-        user.setK2(selectedK2);
-        user.setAttributes(selectedAtts);
-
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.GRAPH_SELECT);
     }
@@ -137,12 +151,7 @@ public class DataModelController implements Initializable {
                 .sorted(Comparator.comparing(EntityType::getName)).collect(Collectors.toCollection(ArrayList::new));
         for (EntityType entity : entities) {
             entity1Choice.getItems().add(entity.getName());
-            entity2Choice.getItems().add(entity.getName());
         }
-
-        // Add null choice for entity 2 (not required)
-        entity2Choice.getItems().add(NOT_SELECTED);
-        entity2Choice.setValue(NOT_SELECTED);
 
         entity1BasicBox.setVisible(false);
         entity1WeakBox.setVisible(false);
@@ -154,10 +163,28 @@ public class DataModelController implements Initializable {
 
         // Set Entity 1 Choice action
         entity1Choice.setOnAction(event -> {
-            selectedK1 = null;
-            genGraphsButton.setDisable(true);
-            relationshipLabel.setText("...");
+            /* Disable */
+            entity2Choice.getItems().clear();
+            entity2Choice.setValue(null);
+            entity2Choice.setDisable(true);
+            entity2BasicBox.setVisible(false);
+            entity2WeakBox.setVisible(false);
+            entity2Label.setVisible(false);
+            k2Text.setText(DEFAULT_LABEL);
 
+            visSchemaChoice.getItems().clear();
+            visSchemaChoice.setValue(null);
+            visSchemaChoice.setDisable(true);
+            clearAttributesVBox();
+            genGraphsButton.setDisable(true);
+
+            selectedE1 = null;
+            selectedE2 = null;
+            currRelationship = null;
+            currVisPattern = null;
+            k1Text.setText(DEFAULT_LABEL);
+
+            /* New E1 selected */
             selectedE1 = rm.getEntity(entity1Choice.getValue());
 
             // Show entity image representation
@@ -166,208 +193,273 @@ public class DataModelController implements Initializable {
             entity1Label.setText(selectedE1.getName());
             entity1Label.setVisible(true);
 
-            // Add choices to key 1 choice box
-            k1Choice.getItems().clear();
-            ArrayList<PrimaryAttribute> keyAtts = selectedE1.getPrimaryAttributes().stream()
-                    .sorted(Comparator.comparing(Attribute::getColumn)).collect(Collectors.toCollection(ArrayList::new));
-            for (PrimaryAttribute keyAtt : keyAtts) {
-                k1Choice.getItems().add(keyAtt.getColumn());
+            // Show primary key
+            Relation e1Rel = rm.getRelation(selectedE1.getName());
+            k1Text.setText(e1Rel.getPrimaryKey().getAttributesRepresentation());
+
+            /* Add Vis Schema Basic Entity Choice */
+            visSchemaChoice.getItems().add(getVisSchemaChoiceName(VisSchemaPattern.BASIC_ENTITY, selectedE1.getName()));
+            visSchemaChoice.setValue(visSchemaChoice.getItems().get(0));
+
+            /* Add E2 choices */
+            for (EntityType e2 : entities) {
+                // TODO: could time save
+                if (!checkForRelationships(rm, selectedE1, e2).isEmpty()) {
+                    entity2Choice.getItems().add(e2.getName());
+                }
             }
 
-            k1Choice.setDisable(false);
+            // Add null choice for entity 2 (since it's not required)
+            entity2Choice.getItems().add(NOT_SELECTED);
+            entity2Choice.setValue(NOT_SELECTED);
+            entity2Choice.setDisable(false);
+
+            /* Enable */
+            visSchemaChoice.setDisable(false);
         });
 
         // Set Entity 2 Choice action
         entity2Choice.setOnAction(event -> {
-            selectedK2 = null;
-            genGraphsButton.setDisable(true);
-            relationshipLabel.setText("...");
-
-            // null choice selected
-            if (entity2Choice.getValue().equals(NOT_SELECTED)) {
-                entity2BasicBox.setVisible(false);
-                entity2WeakBox.setVisible(false);
-                entity2Label.setVisible(false);
-                k2Choice.setDisable(true);
-                selectedE2 = null;
+            String e2Value = entity2Choice.getValue();
+            if (e2Value == null) {
                 return;
             }
 
+            /* Reset */
+            selectedE2 = null;
+            entity2BasicBox.setVisible(false);
+            entity2WeakBox.setVisible(false);
+            entity2Label.setVisible(false);
+            k2Text.setText(DEFAULT_LABEL);
+
+            genGraphsButton.setDisable(true);
+            visSchemaChoice.getItems().clear();
+            visSchemaChoice.setValue(null);
+            visSchemaChoice.setDisable(true);
+            clearAttributesVBox();
+
+            currRelationship = null;
+            currVisPattern = null;
+
+            if (e2Value.equals(NOT_SELECTED)) {
+                // Offer a basic entity relationship for e1
+                visSchemaChoice.getItems().add(getVisSchemaChoiceName(VisSchemaPattern.BASIC_ENTITY, selectedE1.getName()));
+                visSchemaChoice.setValue(visSchemaChoice.getItems().get(0));
+                return;
+            }
+
+            /* New E1 selected */
             selectedE2 = rm.getEntity(entity2Choice.getValue());
 
-            // Set entity image representation
+            // Show entity image representation
             entity2BasicBox.setVisible(true);
             entity2WeakBox.setVisible(selectedE2 instanceof WeakEntityType);
             entity2Label.setText(selectedE2.getName());
             entity2Label.setVisible(true);
 
-            // Add choices to key 2 choice box
-            k2Choice.getItems().clear();
-            ArrayList<PrimaryAttribute> keyAtts = selectedE2.getPrimaryAttributes().stream()
-                    .sorted(Comparator.comparing(Attribute::getColumn)).collect(Collectors.toCollection(ArrayList::new));
-            for (PrimaryAttribute keyAtt : keyAtts) {
-                k2Choice.getItems().add(keyAtt.getColumn());
+            // Show primary key
+            Relation e2Rel = rm.getRelation(selectedE2.getName());
+            k2Text.setText(e2Rel.getPrimaryKey().getAttributesRepresentation());
+
+            /* Add Vis Schema Choices */
+            if (selectedE1 != null) {
+                setVisSchemaChoiceForTwoEntities(rm, selectedE1, selectedE2);
             }
 
-            k2Choice.setDisable(false);
+            /* Enable */
+            visSchemaChoice.setDisable(false);
         });
 
-        k1Choice.setOnAction(event -> {
-            Relation e1 = rm.getRelation(selectedE1.getName());
-            selectedK1 = e1.findInPrimaryKey(k1Choice.getValue());
-
-            // Check if other choice is made
-            if (selectedE2 == null) {
-                relationshipLabel.setText(BASIC_RELATIONSHIP);
-                currVisPattern = VisSchemaPattern.BASIC_ENTITY;
-                genGraphsButton.setDisable(false);
+        visSchemaChoice.setOnAction(event -> {
+            if (visSchemaChoice.getValue() == null) {
                 return;
             }
 
-            if (selectedK2 == null) {
-                relationshipLabel.setText("...");
+            /* Reset */
+            clearAttributesVBox();
+
+            /* Get the chosen relationship and type */
+            String[] visSchemaVals = visSchemaChoice.getValue().split(VIS_SCHEMA_SEPARATOR);
+            if (visSchemaVals.length != 2) {
+                // Something went wrong
                 return;
             }
 
-            // Set relationship type to found relationship or to null
-            Relationship relationship = checkForRelationship(rm, selectedE1, selectedE2);
-
-            if (relationship == null) {
-                relationshipLabel.setText(NO_RELATIONSHIP);
-                currRelationship = null;
-                currVisPattern = null;
-                genGraphsButton.setDisable(true);
+            currVisPattern = VisSchemaPattern.getVisSchemaPattern(visSchemaVals[0]);
+            if (currVisPattern == null) {
+                // Something went wrong
                 return;
             }
 
-            currRelationship = relationship;
+            if (currVisPattern != VisSchemaPattern.BASIC_ENTITY) {
+                currRelationship = rm.getRelationships().get(visSchemaVals[1]);
+                if (currRelationship == null) {
+                    // Something went wrong
+                    return;
+                }
+            }
+
+            /* Add appropriate attributes to addAttributes ChoiceBox */
+            // TODO: also add inclusion relationship attributes
+            addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
+
+            if (currVisPattern != VisSchemaPattern.BASIC_ENTITY) {
+                addRelationToAttributesVBox(rm.getRelation(selectedE2.getName()));
+            }
+
+            addAttributesVBox.getChildren().remove(attributeHBoxTemplate);
+
+            /* Enable */
             genGraphsButton.setDisable(false);
-
-            if (relationship instanceof BinaryRelationship) {
-                // check for weak relationship
-                EntityType entA = rm.getEntity(relationship.getA().getName());
-
-                if (entA instanceof WeakEntityType
-                        && ((WeakEntityType) entA).getOwnerName().equals(relationship.getB().getName())) {
-                    relationshipLabel.setText(WEAK_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.WEAK_ENTITY;
-                    return;
-                }
-
-                relationshipLabel.setText(BINARY_RELATIONSHIP);
-                currVisPattern = VisSchemaPattern.ONE_MANY_REL;
-                return;
-            }
-
-            if (relationship instanceof NAryRelationship) {
-                if (relationship.getA().equals(relationship.getB())) {
-                    relationshipLabel.setText(REFLEXIVE_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.REFLEXIVE;
-                    return;
-                } else {
-                    relationshipLabel.setText(NARY_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.MANY_MANY_REL;
-                    return;
-                }
-            }
-
-            relationshipLabel.setText("Unknown relationship");
-            currRelationship = null;
-            currVisPattern = null;
-            genGraphsButton.setDisable(true);
-        });
-
-        k2Choice.setOnAction(event -> {
-            Relation e2 = rm.getRelation(selectedE2.getName());
-            selectedK2 = e2.findInPrimaryKey(k2Choice.getValue());
-
-            // Check if other choice is made
-            if (selectedE1 == null || selectedK1 == null) {
-                relationshipLabel.setText("...");
-                return;
-            }
-
-            // Set relationship type to found relationship or to null
-            // TODO: repeated code
-            Relationship relationship = checkForRelationship(rm, selectedE1, selectedE2);
-
-            if (relationship == null) {
-                relationshipLabel.setText(NO_RELATIONSHIP);
-                currRelationship = null;
-                currVisPattern = null;
-                genGraphsButton.setDisable(true);
-                return;
-            }
-
-            currRelationship = relationship;
-            genGraphsButton.setDisable(false);
-
-            if (relationship instanceof BinaryRelationship) {
-                // check for weak relationship
-                EntityType entA = rm.getEntity(relationship.getA().getName());
-
-                if (entA instanceof WeakEntityType
-                        && ((WeakEntityType) entA).getOwnerName().equals(relationship.getB().getName())) {
-                    relationshipLabel.setText(WEAK_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.WEAK_ENTITY;
-                    return;
-                }
-
-                relationshipLabel.setText(BINARY_RELATIONSHIP);
-                currVisPattern = VisSchemaPattern.ONE_MANY_REL;
-                return;
-            }
-
-            if (relationship instanceof NAryRelationship) {
-                if (relationship.getA().equals(relationship.getB())) {
-                    relationshipLabel.setText(REFLEXIVE_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.REFLEXIVE;
-                    return;
-                } else {
-                    relationshipLabel.setText(NARY_RELATIONSHIP);
-                    currVisPattern = VisSchemaPattern.MANY_MANY_REL;
-                    return;
-                }
-            }
-
-            relationshipLabel.setText("Unknown relationship");
-            currRelationship = null;
-            currVisPattern = null;
-            genGraphsButton.setDisable(true);
         });
     }
 
-    private Relationship checkForRelationship(ERModel rm, EntityType e1, EntityType e2) {
+    private List<Attribute> getCheckedAttributes() {
+        List<Attribute> selectedAtts = new ArrayList<>();
+        for (Node child : addAttributesVBox.getChildren()) {
+            if (!(child instanceof HBox attributeHBox) || child.equals(attributeHBoxTemplate)) {
+                continue;
+            }
+
+            // Collect attribute info from HBox
+            boolean checked = false;
+            String attName = null;
+            for (Node attChild : attributeHBox.getChildren()) {
+                if (attChild instanceof Label attLabel) {
+                    attName = attLabel.getText();
+                } else if (attChild instanceof CheckBox attCheckBox) {
+                    checked = attCheckBox.isSelected();
+                }
+            }
+
+            if (checked) {
+                selectedAtts.add(currAtts.get(attName));
+            }
+        }
+
+        return selectedAtts;
+    }
+
+    private void clearAttributesVBox() {
+        currAtts = new HashMap<>();
+        addAttributesVBox.getChildren().clear();
+        addAttributesVBox.getChildren().add(attributeHBoxTemplate);
+    }
+
+    private String getAttributeChoiceName(Attribute att) {
+        return att.toString() + " (" + att.getDBType().name() + ")";
+    }
+
+    private void addRelationToAttributesVBox(Relation rel) {
+        rel.getPrimaryKeySet().forEach(att -> {
+            addAttributeToVBox(att);
+            currAtts.put(getAttributeChoiceName(att), att);
+        });
+        rel.getOtherAttributes().forEach(att -> {
+            addAttributeToVBox(att);
+            currAtts.put(getAttributeChoiceName(att), att);
+        });
+    }
+
+    private void addAttributeToVBox(Attribute att) {
+        HBox newAttHBox = new HBox();
+        newAttHBox.setAlignment(attributeHBoxTemplate.getAlignment());
+        newAttHBox.setSpacing(attributeHBoxTemplate.getSpacing());
+        newAttHBox.setPadding(attributeHBoxTemplate.getPadding());
+
+        // Copy the children of the template
+        ObservableList<Node> children = attributeHBoxTemplate.getChildren();
+        for (Node child : children) {
+            if (child instanceof Label template) {
+                // Label case:
+                Label dupLabel = new Label();
+                dupLabel.setText(getAttributeChoiceName(att));
+
+                dupLabel.getStyleClass().clear();
+                dupLabel.getStyleClass().add(0, template.getStyleClass().get(0));
+
+                newAttHBox.getChildren().add(dupLabel);
+            } else if (child instanceof CheckBox) {
+                // CheckBox case:
+                newAttHBox.getChildren().add(2, new CheckBox());
+
+            } else if (child instanceof Region template) {
+                // Middle Region case:
+                Region dupRegion = new Region();
+                HBox.setHgrow(dupRegion, HBox.getHgrow(template));
+                newAttHBox.getChildren().add(1, dupRegion);
+            }
+        }
+
+        addAttributesVBox.getChildren().add(newAttHBox);
+    }
+
+    private String getVisSchemaChoiceName(VisSchemaPattern pattern, String name) {
+        return pattern.getName() + VIS_SCHEMA_SEPARATOR + name;
+    }
+
+    private void setVisSchemaChoiceForTwoEntities(ERModel rm, EntityType e1, EntityType e2) {
+        List<Relationship> relationships = checkForRelationships(rm, e1, e2);
+
+        for (Relationship rel : relationships) {
+            if (rel instanceof BinaryRelationship) {
+                // Check for weak relationship
+                if ((e1 instanceof WeakEntityType
+                        && ((WeakEntityType) e1).getOwnerName().equals(e2.getName()))
+                        || (e2 instanceof WeakEntityType
+                        && ((WeakEntityType) e2).getOwnerName().equals(e1.getName()))) {
+                    // A is E1, B is E2
+                    visSchemaChoice.getItems()
+                            .add(getVisSchemaChoiceName(VisSchemaPattern.WEAK_ENTITY, rel.getName()));
+
+                } else {
+                    visSchemaChoice.getItems()
+                            .add(getVisSchemaChoiceName(VisSchemaPattern.ONE_MANY_REL, rel.getName()));
+                }
+            } else if (rel instanceof NAryRelationship) {
+                // Check for reflexive relationship
+                if (((NAryRelationship) rel).isReflexive()) {
+                    visSchemaChoice.getItems().add(getVisSchemaChoiceName(VisSchemaPattern.REFLEXIVE, rel.getName()));
+                } else {
+                    visSchemaChoice.getItems().add(getVisSchemaChoiceName(VisSchemaPattern.MANY_MANY_REL, rel.getName()));
+                }
+            }
+
+            // Nothing here for Inclusion Relationships
+
+            if (visSchemaChoice.getItems().isEmpty()) {
+                visSchemaChoice.setDisable(true);
+            } else {
+                visSchemaChoice.setValue(visSchemaChoice.getItems().get(0));
+            }
+        }
+    }
+
+    private List<Relationship> checkForRelationships(ERModel rm, EntityType e1, EntityType e2) {
         Relation e1Rel = rm.getRelation(e1.getName());
         Relation e2Rel = rm.getRelation(e2.getName());
 
-        List<ArrayList<PrimaryAttribute>> sharedAtts = e1Rel.findSharedPrimaryAttributes(e2Rel);
-        ArrayList<PrimaryAttribute> e1SharedAtts = sharedAtts.get(0);
-        ArrayList<PrimaryAttribute> e2SharedAtts = sharedAtts.get(1);
+        // TODO: also check for relationships which have an inclusion 1-1 relationship
 
-        // Check weak relationship
+        List<List<PrimaryAttribute>> sharedAtts = e1Rel.findSharedPrimaryAttributes(e2Rel);
+        List<PrimaryAttribute> e1SharedAtts = sharedAtts.get(0);
+        List<PrimaryAttribute> e2SharedAtts = sharedAtts.get(1);
+
+        List<Relationship> relationships = new ArrayList<>();
+        // Check weak or binary relationship
         // TODO: it would be better to have one binary relation for a pair of entities with a list of attributes contained in it
         for (int i = 0; i < e1SharedAtts.size(); i++) {
             PrimaryAttribute k1 = e1SharedAtts.get(i);
             PrimaryAttribute k2 = e2SharedAtts.get(i);
 
             BinaryRelationship br1 = rm.getBinaryRelationship(new InputAttribute(k1), new InputAttribute(k2));
-
-            if (br1 != null && e1 instanceof WeakEntityType && ((WeakEntityType) e1).getOwnerName().equals(e2.getName())) {
-                return br1;
+            if (br1 != null) {
+                relationships.add(br1);
             }
 
             BinaryRelationship br2 = rm.getBinaryRelationship(new InputAttribute(k2), new InputAttribute(k1));
-
-            if (br2 != null && e2 instanceof WeakEntityType && ((WeakEntityType) e2).getOwnerName().equals(e1.getName())) {
-                return br2;
-            }
-
-            // Check for binary relationship
-            if (br1 != null) {
-                return br1;
-            } else if (br2 != null) {
-                return br2;
+            if (br2 != null) {
+                relationships.add(br2);
             }
         }
 
@@ -377,6 +469,10 @@ public class DataModelController implements Initializable {
             nAry = rm.getNAryRelationship(e2Rel, e1Rel);
         }
 
-        return nAry;
+        if (nAry != null) {
+            relationships.add(nAry);
+        }
+
+        return relationships;
     }
 }

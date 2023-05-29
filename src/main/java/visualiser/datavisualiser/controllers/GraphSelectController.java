@@ -13,12 +13,11 @@ import visualiser.datavisualiser.ViewUtils;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
-import visualiser.datavisualiser.models.RelationalModel.AttributeType;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
-import visualiser.datavisualiser.models.RelationalModel.Relationships.Relationship;
+import visualiser.datavisualiser.models.ERModel.AttributeType;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
@@ -59,8 +58,6 @@ public class GraphSelectController implements Initializable {
 
         ERModel rm = user.getRelationalModel();
         Relationship r = user.getRelationship();
-        PrimaryAttribute k1 = user.getK1();
-        PrimaryAttribute k2 = user.getK2();
 //        List<Attribute> atts = user.getAttributes();
 
         /* TODO: FOR TESTING */
@@ -73,20 +70,20 @@ public class GraphSelectController implements Initializable {
 
         switch (user.getVisSchemaPattern()) {
             case BASIC_ENTITY -> {
-                gd = GraphDetector.generateBasicPlans(rm, new InputAttribute(k1), inpAtts);
+//                gd = GraphDetector.generateBasicPlans(rm, new InputAttribute(k1), inpAtts);
             }
             case WEAK_ENTITY -> {
                 // Possibly not the right way round?
-                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+//                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
             }
             case ONE_MANY_REL -> {
-                gd = GraphDetector.generateOneManyPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+//                gd = GraphDetector.generateOneManyPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
             }
             case MANY_MANY_REL -> {
-                gd = GraphDetector.generateManyManyPlans(rm, false, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+//                gd = GraphDetector.generateManyManyPlans(rm, false, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
             }
             case REFLEXIVE -> {
-                gd = GraphDetector.generateManyManyPlans(rm, true, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
+//                gd = GraphDetector.generateManyManyPlans(rm, true, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
             }
         }
 
@@ -108,8 +105,11 @@ public class GraphSelectController implements Initializable {
             chosenPlans = new ArrayList<>(plans.get(graphChoice.getValue()));
             chosenPlan = chosenPlans.get(0);
 
-            List<AttributeType> orderedTypes = chosenPlan.getOrderedAttributeTypes();
-            List<Attribute> orderedAtts = chosenPlan.getOrderedAttributes();
+            // TODO:
+//            List<AttributeType> orderedTypes = chosenPlan.getOrderedAttributeTypes();
+//            List<Attribute> orderedAtts = chosenPlan.getOrderedAttributes();
+            List<AttributeType> orderedTypes = List.of();
+            List<Attribute> orderedAtts = List.of();
 
             for (int i = 0; i < orderedTypes.size(); i++) {
                 AttributeType type = orderedTypes.get(i);
@@ -130,26 +130,25 @@ public class GraphSelectController implements Initializable {
                         dupLabel.getStyleClass().clear();
                         dupLabel.getStyleClass().add(template.getStyleClass().get(0));
 
-                        typeBox.getChildren().add(dupLabel);
-
                         HBox.setMargin(dupLabel, HBox.getMargin(template));
+
+                        typeBox.getChildren().add(0, dupLabel);
 
                     } else if (child instanceof ChoiceBox<?> template) {
                         // ChoiceBox case:
                         ChoiceBox<String> dupChoice = new ChoiceBox<>();
 
-
-                        typeBox.getChildren().add(dupChoice);
-
                         HBox.setMargin(dupChoice, HBox.getMargin(template));
+
+                        typeBox.getChildren().add(1, dupChoice);
                     }
                 }
 
 
                 attributesVBox.getChildren().add(typeBox);
             }
-
-            for (AttributeType mand : chosenPlan.)
+//
+//            for (AttributeType mand : chosenPlan.)
         });
     }
 }

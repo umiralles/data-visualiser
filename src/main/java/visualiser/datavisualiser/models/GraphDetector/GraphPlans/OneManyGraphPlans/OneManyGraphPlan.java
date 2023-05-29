@@ -1,9 +1,9 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans;
 
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.RelationalModel.AttributeType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.ERModel.AttributeType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 
 import java.util.*;
 

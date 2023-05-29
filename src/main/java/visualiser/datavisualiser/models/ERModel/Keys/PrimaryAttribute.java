@@ -1,6 +1,6 @@
-package visualiser.datavisualiser.models.RelationalModel.Keys;
+package visualiser.datavisualiser.models.ERModel.Keys;
 
-import visualiser.datavisualiser.models.RelationalModel.DBType;
+import visualiser.datavisualiser.models.ERModel.DBType;
 
 import java.util.HashSet;
 

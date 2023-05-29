@@ -1,6 +1,6 @@
-package visualiser.datavisualiser.models.RelationalModel.Relationships;
+package visualiser.datavisualiser.models.ERModel.Relationships;
 
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.util.Objects;
 
@@ -27,7 +27,7 @@ public abstract class Relationship {
     }
 
     public static String generateName(Relation a, Relation b) {
-        return a.getName() + "<" + b.getName();
+        return a.getName() + " < " + b.getName();
     }
 
     @Override

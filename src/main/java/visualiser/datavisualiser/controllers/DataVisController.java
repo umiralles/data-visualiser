@@ -11,13 +11,11 @@ import visualiser.datavisualiser.models.GoogleChart.DataTable;
 import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.RelationalModel.ERModel;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 

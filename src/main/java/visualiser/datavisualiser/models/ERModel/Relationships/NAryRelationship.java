@@ -1,7 +1,7 @@
-package visualiser.datavisualiser.models.RelationalModel.Relationships;
+package visualiser.datavisualiser.models.ERModel.Relationships;
 
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Relations.Relation;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -29,6 +29,10 @@ public class NAryRelationship extends Relationship {
 
     public void setDescriptiveAttributes(HashSet<Attribute> descriptiveAttributes) {
         this.descriptiveAttributes = descriptiveAttributes;
+    }
+
+    public boolean isReflexive() {
+        return getA().equals(getB());
     }
 
     @Override

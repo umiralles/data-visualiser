@@ -1,10 +1,9 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
-import visualiser.datavisualiser.models.RelationalModel.AttributeType;
-import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
-import visualiser.datavisualiser.models.RelationalModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.ERModel.AttributeType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 
 import java.util.*;
 
@@ -44,28 +43,34 @@ public abstract class BasicGraphPlan extends GraphPlan {
     public abstract List<AttributeType> getMandatories();
     public abstract List<AttributeType> getOptionals();
 
-    public Set<GraphPlan> fitAttributesToPlan(Attribute kAtt, List<Attribute> unorderedAtts) {
-        Set<GraphPlan> plans = new HashSet<>();
-        List<List<Attribute>> possibleOrders = orderAttributesByType(kAtt, unorderedAtts);
-
-        for (List<Attribute> possibleOrder : possibleOrders) {
-            plans.add(getInstance(kAtt, possibleOrder));
-        }
-
-        return plans;
-    }
-
-    private List<List<Attribute>> orderAttributesByType(Attribute kAtt, List<Attribute> atts) {
-        int attSize = atts.size();
+    public Set<GraphPlan> fitAttributesToPlan(PrimaryKey k1, List<Attribute> unorderedAtts) {
+        int attSize = unorderedAtts.size();
         int smallestAttsSize = getMandatories().size();
         int largestAttsSize = smallestAttsSize + getOptionals().size();
 
-        if (attSize < smallestAttsSize || attSize > largestAttsSize
-                || !kAtt.getDBType().getAttType().isType(getKType())) {
-            return Collections.emptyList();
+        if (attSize < smallestAttsSize || attSize > largestAttsSize) {
+            return Collections.emptySet();
         }
 
-        return findMandatoryAndOptionalAttsOrder(atts, getMandatories(), getOptionals());
+        // TODO: Check that all atts in k1 are correct
+
+//        List<List<Attribute>> possibleMandatories = findMandatoryAttsOrders(unorderedAtts, getMandatories());
+//        if (possibleMandatories.isEmpty()) {
+//            return Collections.emptySet();
+//        }
+//
+//        List<List<Attribute>> possibleOptionals = findOptionalAttsOrders(unorderedAtts, possibleMandatories, getOptionals());
+
+        Set<GraphPlan> plans = new HashSet<>();
+
+        // TODO: bruh
+        List<List<Attribute>> possibleOrders = List.of();
+
+        for (List<Attribute> possibleOrder : possibleOrders) {
+            plans.add(getInstance(k1, new ArrayList<>(), possibleOrder));
+        }
+
+        return plans;
     }
 
     @Override
