@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
@@ -16,7 +17,7 @@
     <columnConstraints>
       <ColumnConstraints hgrow="ALWAYS" percentWidth="10.0" />
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
-        <ColumnConstraints hgrow="NEVER" />
+        <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
         <ColumnConstraints hgrow="NEVER" percentWidth="3.0" />
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
         <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
@@ -30,11 +31,10 @@
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
       <RowConstraints percentHeight="5.0" vgrow="NEVER" />
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
-      <RowConstraints percentHeight="4.0" vgrow="NEVER" />
+      <RowConstraints percentHeight="3.0" vgrow="NEVER" />
       <RowConstraints vgrow="NEVER" />
-      <RowConstraints percentHeight="4.0" vgrow="NEVER" />
+      <RowConstraints percentHeight="3.0" vgrow="NEVER" />
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
-      <RowConstraints percentHeight="2.0" vgrow="NEVER" />
       <RowConstraints vgrow="NEVER" />
       <RowConstraints minHeight="50.0" prefHeight="30.0" vgrow="ALWAYS" />
     </rowConstraints>
@@ -70,24 +70,17 @@
             <Insets left="5.0" right="5.0" />
          </GridPane.margin>
       </Label>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Choose Key Attribtue 1:" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Primary Key:" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="CENTER">
          <GridPane.margin>
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Choose Key Attribtue 2:" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="4" GridPane.rowIndex="6" GridPane.valignment="CENTER">
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Primary Key:" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="4" GridPane.rowIndex="6" GridPane.valignment="CENTER">
          <GridPane.margin>
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
-      <ChoiceBox fx:id="k1Choice" disable="true" minWidth="180.0" GridPane.columnIndex="2" GridPane.rowIndex="6" />
-      <ChoiceBox fx:id="k2Choice" disable="true" minWidth="180.0" GridPane.columnIndex="5" GridPane.rowIndex="6" />
       <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="*" GridPane.columnIndex="3" GridPane.rowIndex="2">
-         <GridPane.margin>
-            <Insets left="5.0" />
-         </GridPane.margin>
-      </Text>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="*" GridPane.columnIndex="3" GridPane.rowIndex="6">
          <GridPane.margin>
             <Insets left="5.0" />
          </GridPane.margin>
@@ -97,22 +90,32 @@
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
-      <Label fx:id="relationshipLabel" styleClass="model-select-label" text="..." GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.rowIndex="8" GridPane.valignment="CENTER">
-         <GridPane.margin>
-            <Insets left="5.0" />
-         </GridPane.margin>
-      </Label>
       <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Additional Attributes:" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="10">
          <GridPane.margin>
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
       <ChoiceBox fx:id="addAttributesChoice" disable="true" minWidth="180.0" prefHeight="24.0" prefWidth="373.0" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.rowIndex="10" />
-      <ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-border-style: none;" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.rowIndex="12">
+      <ScrollPane fitToHeight="true" fitToWidth="true" style="-fx-border-style: none;" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.rowIndex="11">
          <content>
-            <VBox fx:id="addAttributesBox" />
+            <VBox fx:id="addAttributesBox">
+               <children>
+                  <HBox>
+                     <children>
+                        <Label text="table.attribute" HBox.hgrow="ALWAYS" />
+                        <Button mnemonicParsing="false" text="Button" />
+                     </children>
+                  </HBox>
+               </children></VBox>
          </content>
       </ScrollPane>
-      <Button fx:id="genGraphsButton" disable="true" maxWidth="125.0" mnemonicParsing="false" onAction="#onGenGraphsButtonClick" text="Generate Graph Options" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.rowIndex="12" GridPane.valignment="TOP" />
+      <Button fx:id="genGraphsButton" disable="true" maxWidth="125.0" mnemonicParsing="false" onAction="#onGenGraphsButtonClick" text="Generate Graph Options" textAlignment="CENTER" wrapText="true" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.rowIndex="11" GridPane.valignment="TOP" />
+      <Label fx:id="k1Label" styleClass="model-select-label" text="..." GridPane.columnIndex="2" GridPane.rowIndex="6">
+         <GridPane.margin>
+            <Insets left="5.0" />
+         </GridPane.margin>
+      </Label>
+      <ChoiceBox fx:id="k1Choice1" disable="true" minWidth="180.0" GridPane.columnIndex="2" GridPane.rowIndex="8" />
+      <Label fx:id="k2Label" styleClass="model-select-label" text="..." GridPane.columnIndex="5" GridPane.rowIndex="6" />
    </children>
 </GridPane>

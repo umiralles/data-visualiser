@@ -38,8 +38,19 @@
     -fx-font-size: 15;
  }
 
+.model-select-attribute-label {
+    -fx-font-size: 14;
+}
+
+.model-select-attribute-button {
+    -fx-background-color: #ebebeb;
+    -fx-alignment: center-right;
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+}
+
 .graph-select-type-label {
     -fx-font-size: 13;
     -fx-font-weight: bold;
-
 }
