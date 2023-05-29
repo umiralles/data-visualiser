@@ -2,8 +2,8 @@ package visualiser.datavisualiser.models.RelationalModel;
 
 import visualiser.datavisualiser.models.RelationalModel.Keys.Attribute;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public enum AttributeType {
     /* DEFINITIVE TYPES */
@@ -12,35 +12,12 @@ public enum AttributeType {
 
     /* UNSURE TYPES */
     LEXICAL, // Could be geographical, is discrete
-    SCALAR, // Could be a colour
+    SCALAR, // Could be a colour and could be discrete
     DISCRETE, // Could be a colour
     COLOUR,
     ANY,
     // A type that cannot be put into a graph (e.g. Bytes, Arrays)
     INVALID;
-
-    AttributeType() {}
-
-//    public boolean isScalar() {
-//        return switch (this) {
-//            case SCALAR, TEMPORAL -> true;
-//            case DISCRETE, GEOGRAPHICAL, LEXICAL, INVALID, COLOUR, ANY -> false;
-//        };
-//    }
-//
-//    public boolean isDiscrete() {
-//        return switch (this) {
-//            case DISCRETE, GEOGRAPHICAL, LEXICAL -> true;
-//            case SCALAR, TEMPORAL, INVALID, COLOUR, ANY -> false;
-//        };
-//    }
-//
-//    public boolean canBeColour() {
-//        return switch (this) {
-//            case SCALAR, DISCRETE, TEMPORAL, GEOGRAPHICAL, LEXICAL, COLOUR -> true;
-//            case INVALID, ANY -> false;
-//        };
-//    }
 
     // returns true if encasing type is an encasing type or the same as this type
     public boolean isType(AttributeType encasingType) {
@@ -63,36 +40,13 @@ public enum AttributeType {
         };
     }
 
-//    // returns true if type2 IS DEFINITELY type1 (NOT type1 is type2)
-//    public static boolean matches(AttributeType type1, AttributeType type2) {
-//        if (type1.equals(type2)) {
-//            return true;
-//        }
-//
-//        if (type2 == AttributeType.INVALID) {
-//            return false;
-//        }
-//
-//        return switch (type1) {
-//            case ANY -> true;
-//            case SCALAR -> type2.isScalar();
-//            case DISCRETE -> type2.isDiscrete();
-//            case COLOUR -> type2.canBeColour();
-//            case GEOGRAPHICAL, LEXICAL -> type2 == AttributeType.GEO_OR_LEXICAL;
-//            case GEO_OR_LEXICAL -> type2 == AttributeType.LEXICAL || type2 == AttributeType.GEOGRAPHICAL;
-//            case INVALID, TEMPORAL -> false; // the 'smallest' case, type2 must be temporal if type1 is temporal
-//        };
-//    }
+    public static List<Integer> findMatchingIndices(AttributeType encasingType, List<Attribute> atts) {
+        return IntStream.range(0, atts.size())
+                .filter(idx -> atts.get(idx).getDBType().getAttType().isType(encasingType))
+                .boxed().toList();
+    }
 
-    // return -1 if no index is found
-    public static ArrayList<Integer> findMatchingIndices(AttributeType type, List<Attribute> atts) {
-        ArrayList<Integer> possibleIdxs = new ArrayList<>();
-        for (int i = 0; i < atts.size(); i++) {
-            if (atts.get(i).getDBType().getAttType().isType(type)) {
-                possibleIdxs.add(i);
-            }
-        }
-
-        return possibleIdxs;
+    public static List<Attribute> findMatchingAttributes(AttributeType encasingType, List<Attribute> atts) {
+        return atts.stream().filter(att -> att.getDBType().getAttType().isType(encasingType)).toList();
     }
 }
