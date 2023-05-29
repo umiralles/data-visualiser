@@ -42,7 +42,7 @@ public enum AttributeType {
 //        };
 //    }
 
-    // returns true if encasing type is an encasing type of this
+    // returns true if encasing type is an encasing type or the same as this type
     public boolean isType(AttributeType encasingType) {
         if (equals(encasingType)) {
             return true;
@@ -55,7 +55,9 @@ public enum AttributeType {
                     || encasingType == AttributeType.COLOUR || encasingType == AttributeType.ANY;
             case LEXICAL -> encasingType == AttributeType.GEOGRAPHICAL || encasingType == AttributeType.DISCRETE
                     || encasingType == AttributeType.COLOUR || encasingType == AttributeType.ANY;
-            case SCALAR, DISCRETE -> encasingType == AttributeType.COLOUR || encasingType == AttributeType.ANY;
+            case SCALAR -> encasingType == AttributeType.DISCRETE
+                    || encasingType == AttributeType.COLOUR || encasingType == AttributeType.ANY;
+            case DISCRETE -> encasingType == AttributeType.COLOUR || encasingType == AttributeType.ANY;
             case COLOUR -> encasingType == AttributeType.ANY;
             case ANY, INVALID -> false;
         };
