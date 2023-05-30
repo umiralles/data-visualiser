@@ -20,6 +20,10 @@
     -fx-underline: true;
 }
 
+.scene-error-text {
+    -fx-fill: red;
+}
+
 .home-title {
     -fx-font-size: 24;
     -fx-font-weight: bold;
