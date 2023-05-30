@@ -41,10 +41,10 @@ public class GraphSelectController implements Initializable {
     @FXML
     public ChoiceBox<String> typeChoiceBoxTemplate;
 
-    private GraphDetector gd = null;
-
+    // Plans that are of the graph type selected
     private List<GraphPlan> chosenPlans = null;
 
+    // Currently displayed plan
     private GraphPlan chosenPlan = null;
 
     @FXML
@@ -56,39 +56,9 @@ public class GraphSelectController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         User user = ViewUtils.receiveData();
 
-        ERModel rm = user.getRelationalModel();
-        Relationship r = user.getRelationship();
-//        List<Attribute> atts = user.getAttributes();
-
-        /* TODO: FOR TESTING */
-        Relation city = rm.getRelation("city");
-        Attribute elevation = city.findAttribute("elevation");
-        Attribute population = city.findAttribute("population");
-        List<Attribute> atts = List.of(elevation, population);
-
-        List<InputAttribute> inpAtts = atts.stream().map(InputAttribute::new).toList();
-
-        switch (user.getVisSchemaPattern()) {
-            case BASIC_ENTITY -> {
-//                gd = GraphDetector.generateBasicPlans(rm, new InputAttribute(k1), inpAtts);
-            }
-            case WEAK_ENTITY -> {
-                // Possibly not the right way round?
-//                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case ONE_MANY_REL -> {
-//                gd = GraphDetector.generateOneManyPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case MANY_MANY_REL -> {
-//                gd = GraphDetector.generateManyManyPlans(rm, false, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case REFLEXIVE -> {
-//                gd = GraphDetector.generateManyManyPlans(rm, true, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-        }
-
+        GraphDetector gd = user.getGraphDetector();
         if (gd == null) {
-            // TODO: no graphs
+            // TODO: error
             return;
         }
 
@@ -104,6 +74,7 @@ public class GraphSelectController implements Initializable {
         graphChoice.setOnAction(event -> {
             chosenPlans = new ArrayList<>(plans.get(graphChoice.getValue()));
             chosenPlan = chosenPlans.get(0);
+
 
             // TODO:
 //            List<AttributeType> orderedTypes = chosenPlan.getOrderedAttributeTypes();

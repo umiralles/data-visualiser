@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -21,7 +22,7 @@
         <ColumnConstraints hgrow="NEVER" />
       <ColumnConstraints hgrow="NEVER" />
       <ColumnConstraints hgrow="NEVER" percentWidth="3.0" />
-      <ColumnConstraints halignment="CENTER" hgrow="NEVER" minWidth="200.0" />
+      <ColumnConstraints halignment="CENTER" />
       <ColumnConstraints hgrow="ALWAYS" />
     </columnConstraints>
     <rowConstraints>
@@ -49,33 +50,45 @@
          </GridPane.margin>
       </Text>
       <WebView minHeight="375.0" minWidth="600.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.rowSpan="2" />
-      <VBox fx:id="attributesVBox" GridPane.columnIndex="6" GridPane.rowIndex="4">
-         <children>
-            <HBox fx:id="attributeHBoxTemplate" prefWidth="200.0" visible="false">
-               <children>
-                  <Label fx:id="typeLabelTemplate" minWidth="100.0" text="Type:">
-                     <HBox.margin>
-                        <Insets right="10.0" top="3.0" />
-                     </HBox.margin>
-                     <font>
-                        <Font name="System Bold" size="13.0" />
-                     </font>
-                  </Label>
-                  <ChoiceBox fx:id="typeChoiceBoxTemplate" minWidth="125.0" prefWidth="150.0" HBox.hgrow="ALWAYS" />
-               </children>
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </HBox>
-         </children>
-         <GridPane.margin>
-            <Insets top="10.0" />
-         </GridPane.margin>
-      </VBox>
       <Button mnemonicParsing="false" onAction="#onHomeButtonClick" text="Go Home" GridPane.columnIndex="6" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="BOTTOM">
          <GridPane.margin>
-            <Insets right="10.0" />
+            <Insets right="40.0" />
          </GridPane.margin>
       </Button>
+      <ScrollPane hbarPolicy="NEVER" style="-fx-background-color: transparent;" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
+         <content>
+            <VBox fx:id="attributesVBox" alignment="TOP_CENTER">
+               <children>
+                  <HBox fx:id="attributeHBoxTemplate" alignment="CENTER_LEFT" visible="false">
+                     <children>
+                        <Label fx:id="typeLabelTemplate" minWidth="130.0" text="Type:" wrapText="true" HBox.hgrow="NEVER">
+                           <HBox.margin>
+                              <Insets />
+                           </HBox.margin>
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox fx:id="typeChoiceBoxTemplate" minWidth="150.0" HBox.hgrow="NEVER" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="graph-select-type-label" text="*">
+                           <HBox.margin>
+                              <Insets left="4.0" />
+                           </HBox.margin>
+                        </Text>
+                     </children>
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                     </padding>
+                  </HBox>
+               </children>
+            </VBox>
+         </content>
+         <GridPane.margin>
+            <Insets bottom="10.0" />
+         </GridPane.margin>
+      </ScrollPane>
    </children>
 </GridPane>

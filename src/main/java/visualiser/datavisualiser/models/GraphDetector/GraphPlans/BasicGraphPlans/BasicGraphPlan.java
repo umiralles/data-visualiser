@@ -1,5 +1,6 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
@@ -43,6 +44,18 @@ public abstract class BasicGraphPlan extends GraphPlan {
     public abstract List<AttributeType> getMandatories();
     public abstract List<AttributeType> getOptionals();
 
+    public boolean fitKType(PrimaryKey k1) {
+        Set<PrimaryAttribute> k1Atts = k1.getPAttributes();
+
+        // If there is one primary attribute then use that to check the type
+        if (k1Atts.size() == 1) {
+            return k1Atts.stream().findFirst().get().getDBType().getAttType().isType(getKType());
+        }
+
+        // If there are more than one primary attributes, the AttributeType is equivalent to LEXICAL
+        return AttributeType.LEXICAL.isType(getKType());
+    }
+
     public Set<GraphPlan> fitAttributesToPlan(PrimaryKey k1, List<Attribute> unorderedAtts) {
         int attSize = unorderedAtts.size();
         int smallestAttsSize = getMandatories().size();
@@ -52,22 +65,11 @@ public abstract class BasicGraphPlan extends GraphPlan {
             return Collections.emptySet();
         }
 
-        // TODO: Check that all atts in k1 are correct
-
-//        List<List<Attribute>> possibleMandatories = findMandatoryAttsOrders(unorderedAtts, getMandatories());
-//        if (possibleMandatories.isEmpty()) {
-//            return Collections.emptySet();
-//        }
-//
-//        List<List<Attribute>> possibleOptionals = findOptionalAttsOrders(unorderedAtts, possibleMandatories, getOptionals());
-
         Set<GraphPlan> plans = new HashSet<>();
-
-        // TODO: bruh
-        List<List<Attribute>> possibleOrders = List.of();
+        List<List<Attribute>> possibleOrders = findMandatoryAndOptionalAttsOrder(unorderedAtts, getMandatories(), getOptionals());
 
         for (List<Attribute> possibleOrder : possibleOrders) {
-            plans.add(getInstance(k1, new ArrayList<>(), possibleOrder));
+            plans.add(getInstance(k1, possibleOrder, new ArrayList<>()));
         }
 
         return plans;

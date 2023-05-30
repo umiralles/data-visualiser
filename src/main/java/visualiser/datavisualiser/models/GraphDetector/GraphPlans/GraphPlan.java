@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
          //          0th mandatory type be the 1st attribute
          //          1st mandatory type be the 0th attribute
          //  All orders are of size mandatories.size()
-         List<List<Integer>> possOrders = findPossibleOrdersOfAttributes(possMandatories);
+         List<List<Integer>> possOrders = findPossibleOrdersOfAttributes(possMandatories, false);
          if (possOrders.size() == 0) {
              return Collections.emptyList();
          }
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
              for (List<Integer> possMandOrder : possMandOrders) {
                  List<List<Integer>> possOptionals = findMatchingOptionalTypes(optionals, possMandOrder, atts);
 
-                 List<List<Integer>> possOptOrders = findPossibleOrdersOfAttributes(possOptionals);
+                 List<List<Integer>> possOptOrders = findPossibleOrdersOfAttributes(possOptionals, true);
                  if (possOptOrders.size() == 0) {
                      // this mandatory order of attributes is not possible, since there is no fit for remaining attributes
                      continue;
@@ -65,7 +65,13 @@ import java.util.stream.Collectors;
          }
 
          // Convert possible orders indexes to Attributes
-         return possOrders.stream().map(idxs -> idxs.stream().map(atts::get).collect(Collectors.toList())).collect(Collectors.toList());
+         return possOrders.stream().map(idxs -> idxs.stream().map(idx -> {
+             if (idx != null) {
+                 return atts.get(idx);
+             }
+
+             return null;
+         }).collect(Collectors.toList())).collect(Collectors.toList());
      }
 
      // e.g. returning [[0,1],[0]] means that the 0th mandatory type for the graph matches the 0th and 1st attribute
@@ -75,7 +81,7 @@ import java.util.stream.Collectors;
          List<List<Integer>> possMandatories = new ArrayList<>();
          for (AttributeType mandType : mandatories) {
              List<Integer> possIdxs = AttributeType.findMatchingIndices(mandType, atts);
-             if (possIdxs.size() == 0) {
+             if (possIdxs.isEmpty()) {
                  return Collections.emptyList();
              }
 
@@ -89,8 +95,8 @@ import java.util.stream.Collectors;
                                                                   List<Integer> orderOfMandatories,
                                                                   List<Attribute> atts) {
          // Remove attributes that are already a part of this order
-         ArrayList<Attribute> optionalAtts = new ArrayList<>(atts);
-         ArrayList<Integer> possMandOrderReverse = new ArrayList<>(orderOfMandatories);
+         List<Attribute> optionalAtts = new ArrayList<>(atts);
+         List<Integer> possMandOrderReverse = new ArrayList<>(orderOfMandatories);
          possMandOrderReverse.sort(Comparator.reverseOrder());
          for (Integer idx : possMandOrderReverse) {
              optionalAtts.remove((int) idx);
@@ -108,9 +114,21 @@ import java.util.stream.Collectors;
      // e.g. (extending above) returning[[1, 0]] this means that the only possible combination would be to have the
      //          0th mandatory type be the 1st attribute
      //          1st mandatory type be the 0th attribute
-     private static List<List<Integer>> findPossibleOrdersOfAttributes(List<List<Integer>> indicesList) {
+     private static List<List<Integer>> findPossibleOrdersOfAttributes(List<List<Integer>> indicesList,
+                                                                       boolean areOptional) {
+         // Only usable for optionals
+         Set<Integer> uniqueIdxs = null;
+         if (areOptional) {
+             // highest index represents a null value
+             // all possible integers provided can be null
+             indicesList.forEach(list -> list.add(null));
+             uniqueIdxs = indicesList.stream().flatMap(List::stream).collect(Collectors.toSet());
+         }
+
          List<List<Integer>> combinations = new ArrayList<>();
-         int[] indices = new int[indicesList.size()]; // initialize an array of indices
+         // initialize an array of indices
+         // indicesList.size() is the total number of mandatories/optionals
+         int[] indices = new int[indicesList.size()];
 
          // Loop through all possible combinations of indices
          while (true) {
@@ -121,8 +139,21 @@ import java.util.stream.Collectors;
              }
 
              // Check if all indices are unique
-             if (combination.size() == new HashSet<>(combination).size()) {
+             Set<Integer> uniques = new HashSet<>(combination);
+             if (combination.size() == uniques.size()) {
                  combinations.add(combination);
+             } else if (areOptional) {
+                 // Check that all possible indices are included, and only nulls are duplicated
+                 List<Integer> combinationCopy = new ArrayList<>(combination);
+                 List<Integer> nullList = new ArrayList<>();
+                 nullList.add(null);
+                 combinationCopy.removeAll(nullList);
+
+                 Set<Integer> combCopyUniques = new HashSet<>(combinationCopy);
+                 if (combinationCopy.size() == combCopyUniques.size()
+                         && uniques.containsAll(uniqueIdxs)) {
+                     combinations.add(combination);
+                 }
              }
 
              // Increment the indices

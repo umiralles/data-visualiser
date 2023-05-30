@@ -1,6 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector;
 
 import org.json.JSONObject;
+import org.reflections.Reflections;
+import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.GoogleChart.Column;
 import visualiser.datavisualiser.models.GoogleChart.DataCell;
 import visualiser.datavisualiser.models.GoogleChart.DataTable;
@@ -31,26 +33,11 @@ public class GraphDetector {
         this.plans = plans;
     }
 
+
     // kInput: must be a key attribute of the entity
     // aInputs: all other attributes to be included. Must be part of the entity
     public static GraphDetector generateBasicPlans(ERModel rm, InputAttribute kInput, List<InputAttribute> aInputs) {
-        /* Checks for illegal arguments */
         String entityName = kInput.table();
-        if (aInputs.isEmpty()) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: not enough attributes specified for entity " + entityName);
-        }
-
-        List<String> aNames = new ArrayList<>();
-        Set<String> aTables = new HashSet<>();
-        for (InputAttribute aInput : aInputs) {
-            aNames.add(aInput.column());
-            aTables.add(aInput.table());
-        }
-
-        // Check that all attributes are for the same entity
-        if (aTables.size() != 1 || !aTables.stream().findFirst().get().equals(entityName)) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: not all attributes are within entity " + entityName);
-        }
 
         Relation entityRelation = rm.getRelation(entityName);
         if (entityRelation == null || !entityRelation.isEntityRelation()) {
@@ -63,18 +50,28 @@ public class GraphDetector {
                     + " is not a primary attribute of " + entityName);
         }
 
+        List<String> aNames = aInputs.stream().map(InputAttribute::column).toList();
         List<Attribute> as = entityRelation.findAttributes(aNames);
         if (as == null) {
             throw new IllegalArgumentException("GraphDetector.generateBasicPlans: attributes for "
                     + entityName + " were not found in the relation " + entityRelation.getName());
         }
 
-        Map<String, Set<GraphPlan>> plans = new HashMap<>();
-        // TODO: reflections
-        Set<Class<? extends BasicGraphPlan>> subClasses = Set.of(BarChartPlan.class, BubbleChartPlan.class, CalendarPlan.class,
-                ChoroplethMapPlan.class, ScatterDiagramPlan.class, WordCloudPlan.class);
-        for (Class<? extends BasicGraphPlan> subClass : subClasses) {
+        return generateBasicPlans(rm, rm.getEntity(entityName), as);
+    }
 
+    public static GraphDetector generateBasicPlans(ERModel rm, EntityType entity, List<Attribute> as) {
+        /* Checks for illegal arguments */
+        if (as.isEmpty()) {
+            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: not enough attributes specified for entity " + entity.getName());
+        }
+
+        Reflections reflections = new Reflections(BasicGraphPlan.class.getPackageName());
+        Set<Class<? extends BasicGraphPlan>> subClasses = reflections.getSubTypesOf(BasicGraphPlan.class);
+
+        Relation eRel = rm.getRelation(entity.getName());
+        Map<String, Set<GraphPlan>> plans = new HashMap<>();
+        for (Class<? extends BasicGraphPlan> subClass : subClasses) {
             Set<GraphPlan> typePlans;
             String planName;
             try {
@@ -85,18 +82,25 @@ public class GraphDetector {
                             subClass.getName() + "has not overwritten getDummyInstance method.");
                 }
 
+                if (!dummyPlan.fitKType(eRel.getPrimaryKey())) {
+                    continue;
+                }
+
                 planName = dummyPlan.getPlanName();
-//                typePlans = dummyPlan.fitAttributesToPlan(k, as);
+                typePlans = dummyPlan.fitAttributesToPlan(eRel.getPrimaryKey(), as);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
 
-//            if (!typePlans.isEmpty()) {
-//                plans.put(planName, typePlans);
-//            }
+            if (typePlans != null && !typePlans.isEmpty()) {
+                plans.put(planName, typePlans);
+            }
         }
 
-        as.add(k);
+        if (plans.isEmpty()) {
+            return null;
+        }
+
         return new GraphDetector(VisSchemaPattern.BASIC_ENTITY, new HashSet<>(as), plans);
     }
 
