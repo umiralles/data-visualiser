@@ -42,7 +42,7 @@ public class DataConnectController {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         User user = new User();
-        user.setRelationalModel(rm);
+        user.setERModel(rm);
         ViewUtils.sendData(user);
 
         ViewUtils.switchTo(View.DATA_SELECT);

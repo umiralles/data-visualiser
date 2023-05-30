@@ -18,11 +18,11 @@ public class User {
     private List<Attribute> as;
     private GraphPlan plan;
 
-    public ERModel getRelationalModel() {
+    public ERModel getERModel() {
         return rm;
     }
 
-    public void setRelationalModel(ERModel rm) {
+    public void setERModel(ERModel rm) {
         this.rm = rm;
     }
 

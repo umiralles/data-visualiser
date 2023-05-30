@@ -28,7 +28,7 @@ public class DataVisController implements Initializable {
         User user = ViewUtils.receiveData();
         GraphDetector gd = user.getGraphDetector();
         GraphPlan plan = user.getPlan();
-        ERModel rm = user.getRelationalModel();
+        ERModel rm = user.getERModel();
 
         try {
             DataTable unorderedData = gd.getData(rm);

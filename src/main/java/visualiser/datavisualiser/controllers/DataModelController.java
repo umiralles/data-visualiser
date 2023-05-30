@@ -80,6 +80,9 @@ public class DataModelController implements Initializable {
     @FXML
     private Button genGraphsButton;
 
+    @FXML
+    public Text generateGraphErrorText;
+
     private EntityType selectedE1 = null;
     private EntityType selectedE2 = null;
     private VisSchemaPattern currVisPattern = null;
@@ -88,11 +91,15 @@ public class DataModelController implements Initializable {
 
     @FXML
     private void onGenGraphsButtonClick() {
+        generateGraphErrorText.setText("");
+
+        User user = ViewUtils.receiveData();
+        ERModel rm = user.getERModel();
+
+
         GraphDetector gd = null;
         switch (currVisPattern) {
-            case BASIC_ENTITY -> {
-//                gd = GraphDetector.generateBasicPlans(rm, new InputAttribute(k1), inpAtts);
-            }
+            case BASIC_ENTITY -> gd = GraphDetector.generateBasicPlans(rm, selectedE1, getCheckedAttributes());
             case WEAK_ENTITY -> {
                 // Possibly not the right way round?
 //                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
@@ -109,11 +116,11 @@ public class DataModelController implements Initializable {
         }
 
         if (gd == null) {
-            // TODO: no graphs
+            generateGraphErrorText.setText("No plots found for this selection.");
             return;
         }
 
-        User user = ViewUtils.receiveData();
+        user.setGraphDetector(gd);
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.GRAPH_SELECT);
     }
@@ -121,7 +128,7 @@ public class DataModelController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         User user = ViewUtils.receiveData();
-        ERModel rm = user.getRelationalModel();
+        ERModel rm = user.getERModel();
 
         /* CHECK FOR RELATIONSHIPS FUNCTIONALITY */
 //        EntityType city = rm.getEntity("city");
@@ -177,6 +184,7 @@ public class DataModelController implements Initializable {
             visSchemaChoice.setDisable(true);
             clearAttributesVBox();
             genGraphsButton.setDisable(true);
+            generateGraphErrorText.setText("");
 
             selectedE1 = null;
             selectedE2 = null;
@@ -233,6 +241,7 @@ public class DataModelController implements Initializable {
             k2Text.setText(DEFAULT_LABEL);
 
             genGraphsButton.setDisable(true);
+            generateGraphErrorText.setText("");
             visSchemaChoice.getItems().clear();
             visSchemaChoice.setValue(null);
             visSchemaChoice.setDisable(true);
@@ -277,6 +286,7 @@ public class DataModelController implements Initializable {
 
             /* Reset */
             clearAttributesVBox();
+            generateGraphErrorText.setText("");
 
             /* Get the chosen relationship and type */
             String[] visSchemaVals = visSchemaChoice.getValue().split(VIS_SCHEMA_SEPARATOR);

@@ -125,5 +125,6 @@
       <ChoiceBox fx:id="visSchemaChoice" disable="true" minWidth="180.0" prefWidth="375.0" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.rowIndex="8" />
       <Text fx:id="k1Text" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-label" text="..." textAlignment="CENTER" wrappingWidth="180.0" GridPane.columnIndex="2" GridPane.rowIndex="6" />
       <Text fx:id="k2Text" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-label" text="..." textAlignment="CENTER" wrappingWidth="180.0" GridPane.columnIndex="5" GridPane.rowIndex="6" />
+      <Text fx:id="generateGraphErrorText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="scene-error-text" textAlignment="RIGHT" wrappingWidth="150.0" GridPane.columnIndex="5" GridPane.halignment="RIGHT" GridPane.rowIndex="9" />
    </children>
 </GridPane>

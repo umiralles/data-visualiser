@@ -123,7 +123,7 @@ public class DataDatabaseController implements Initializable {
         }
 
         User user = ViewUtils.receiveData();
-        ERModel rm = user.getRelationalModel();
+        ERModel rm = user.getERModel();
 
         /* BASIC ENTITY GRAPH */
         if (k2 == null || (attributes.size() > 0 && k1.table().equals(attTable) && k2.table().equals(attTable))) {

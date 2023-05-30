@@ -19,7 +19,7 @@ public class DataSelectController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         User user = ViewUtils.receiveData();
 
-        titleLabel.setText("Connected to " + user.getRelationalModel().getCatalog() + " and processed it's data");
+        titleLabel.setText("Connected to " + user.getERModel().getCatalog() + " and processed it's data");
     }
 
     @FXML
