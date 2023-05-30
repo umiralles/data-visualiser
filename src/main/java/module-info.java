@@ -7,6 +7,7 @@ module visualiser.datavisualiser {
     requires java.sql;
     requires javafx.web;
     requires json;
+    requires org.reflections;
 
     opens visualiser.datavisualiser to javafx.fxml;
     exports visualiser.datavisualiser;
