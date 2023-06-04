@@ -1,8 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
 import visualiser.datavisualiser.models.ERModel.AttributeType;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class WordCloudPlan extends BasicGraphPlan {
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
     private WordCloudPlan(PrimaryKey k1,
-                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                          List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         super(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
@@ -26,7 +26,7 @@ public class WordCloudPlan extends BasicGraphPlan {
 
     @Override
     public BasicGraphPlan getInstance(PrimaryKey k1,
-                                         List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                                      List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         return new WordCloudPlan(k1, orderedMandAtts, orderedOptionalAtts);
     }
 

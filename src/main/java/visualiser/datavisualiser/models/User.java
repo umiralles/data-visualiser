@@ -1,13 +1,10 @@
 package visualiser.datavisualiser.models;
 
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
-import visualiser.datavisualiser.models.ERModel.ERModel;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
-
-import java.util.List;
 
 public class User {
 
@@ -15,7 +12,6 @@ public class User {
     private GraphDetector gd;
     private VisSchemaPattern v;
     private Relationship r;
-    private List<Attribute> as;
     private GraphPlan plan;
 
     public ERModel getERModel() {
@@ -48,14 +44,6 @@ public class User {
 
     public void setRelationship(Relationship r) {
         this.r = r;
-    }
-
-    public List<Attribute> getAttributes() {
-        return as;
-    }
-
-    public void setAttributes(List<Attribute> as) {
-        this.as = as;
     }
 
     public GraphPlan getPlan() {

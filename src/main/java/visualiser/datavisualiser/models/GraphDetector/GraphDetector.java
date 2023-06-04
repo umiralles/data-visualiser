@@ -1,16 +1,15 @@
 package visualiser.datavisualiser.models.GraphDetector;
 
-import org.json.JSONObject;
 import org.reflections.Reflections;
+import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 import visualiser.datavisualiser.models.GoogleChart.Column;
 import visualiser.datavisualiser.models.GoogleChart.DataCell;
 import visualiser.datavisualiser.models.GoogleChart.DataTable;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.*;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.BasicGraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.ERModel.ERModel;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -126,14 +125,6 @@ public class GraphDetector {
         return plans;
     }
 
-    // For WebView of width 775, height 500: width 765, height 480
-    public JSONObject getGoogleChartOptions() {
-        return new JSONObject()
-                .put("title", "New Chart")
-                .put("width", 765)
-                .put("height", 480);
-    }
-
     public DataTable getData(ERModel rm) throws SQLException {
         if (data != null) {
             return data;
@@ -158,7 +149,7 @@ public class GraphDetector {
 
                 List<List<DataCell>> rows = rm.getRowsFromQueryAndAtts(generateBasicEntityQuery(rm, table, attsStr), attsList);
 
-                data = new DataTable(columns, rows);
+                data = new DataTable(attsList, columns, rows);
             }
 
             case WEAK_ENTITY -> {

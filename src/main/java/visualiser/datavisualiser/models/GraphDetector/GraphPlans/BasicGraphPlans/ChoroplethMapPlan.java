@@ -1,9 +1,9 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GoogleChart.ChartType;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +18,7 @@ public class ChoroplethMapPlan extends BasicGraphPlan {
     private static final List<AttributeType> optionals = Collections.emptyList();
 
     private ChoroplethMapPlan(PrimaryKey k1,
-                          List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                              List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         super(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
@@ -28,7 +28,7 @@ public class ChoroplethMapPlan extends BasicGraphPlan {
 
     @Override
     public BasicGraphPlan getInstance(PrimaryKey k1,
-                                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                                      List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         return new ChoroplethMapPlan(k1, orderedMandAtts, orderedOptionalAtts);
     }
 

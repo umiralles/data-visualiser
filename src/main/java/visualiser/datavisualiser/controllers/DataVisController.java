@@ -5,13 +5,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import org.json.JSONObject;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
+import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.GoogleChart.DataTable;
 import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
-import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
@@ -36,9 +37,9 @@ public class DataVisController implements Initializable {
 //            List<String> orderedColumnNames = plan.getOrderedAttributes().stream().map(Attribute::getColumn).toList();
 //            List<String> orderedColumnNames = plan.getOrderedAttributes().stream()
 //                    .map(att -> att.getTable() + "." + att.getColumn()).toList();
-            DataTable orderedData = unorderedData.reOrderColumns(orderedColumnNames);
+            DataTable orderedData = unorderedData.reOrderColumnsViaLabels(orderedColumnNames);
 
-            GoogleChart chart = new GoogleChart("planChart", orderedData, gd.getGoogleChartOptions(), plan.getGoogleChartType());
+            GoogleChart chart = new GoogleChart("planChart", orderedData, getGoogleChartOptions(), plan.getGoogleChartType());
 //            chart.writeJson("html/chart.json");
 
             WebEngine engine = webView.getEngine();
@@ -65,4 +66,11 @@ public class DataVisController implements Initializable {
         ViewUtils.switchTo(View.HOME);
     }
 
+    // For WebView of width 775, height 500: width 765, height 480
+    public JSONObject getGoogleChartOptions() {
+        return new JSONObject()
+                .put("title", "New Chart")
+                .put("width", 765)
+                .put("height", 480);
+    }
 }

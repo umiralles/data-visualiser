@@ -6,15 +6,25 @@ import java.util.stream.Collectors;
 public class PrimaryKey {
 
     private final String pkName;
+    private final String table;
     private final HashSet<PrimaryAttribute> pAttributes;
 
     public PrimaryKey(String name, HashSet<PrimaryAttribute> pAttributes) {
+        if (pAttributes.isEmpty()) {
+            throw new IllegalArgumentException("PrimaryKey: A primary key must have attributes");
+        }
+
         this.pkName = name;
+        this.table = pAttributes.stream().findFirst().get().getTable();
         this.pAttributes = pAttributes;
     }
 
     public String getPkName() {
         return pkName;
+    }
+
+    public String getTable() {
+        return table;
     }
 
     public HashSet<PrimaryAttribute> getPAttributes() {

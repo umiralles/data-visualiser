@@ -51,7 +51,7 @@ public class DataConnectController {
     private ERModel processDatabase(String url, String username, String password, String schema) {
         // TODO: remove this
         if (url.isBlank()) {
-            url = "jdbc:postgresql://localhost/mondial_plus_extra";
+            url = "jdbc:postgresql://localhost/mondial_plus_extra_2";
             username = "postgres";
             password = "post";
             schema = "public";

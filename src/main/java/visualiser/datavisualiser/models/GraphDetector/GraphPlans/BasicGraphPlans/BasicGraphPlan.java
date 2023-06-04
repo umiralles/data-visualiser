@@ -1,30 +1,36 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
-import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 
 import java.util.*;
 
 public abstract class BasicGraphPlan extends GraphPlan {
 
     private final PrimaryKey k1;
-    private final List<Attribute> orderedMandatoryAtts;
-    private final List<Attribute> orderedOptionalAtts;
+    private final List<GraphAttribute> orderedMandatoryAtts;
+    private final List<GraphAttribute> orderedOptionalAtts;
 
-    BasicGraphPlan(PrimaryKey k1, List<Attribute> orderedMandatoryAtts, List<Attribute> orderedOptionalAtts) {
+    BasicGraphPlan(PrimaryKey k1, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
         this.k1 = k1;
         this.orderedMandatoryAtts = orderedMandatoryAtts;
         this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
-    public List<Attribute> getOrderedMandatories() {
+    @Override
+    public String getName() {
+        return k1.getTable();
+    }
+
+    public List<GraphAttribute> getOrderedMandatories() {
         return orderedMandatoryAtts;
     }
 
-    public List<Attribute> getOrderedOptionals() {
+    public List<GraphAttribute> getOrderedOptionals() {
         return orderedOptionalAtts;
     }
 
@@ -35,14 +41,26 @@ public abstract class BasicGraphPlan extends GraphPlan {
     }
 
     public abstract BasicGraphPlan getInstance(PrimaryKey k1,
-                                               List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts);
+                                               List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts);
 
     public abstract String getPlanName();
+
     public abstract int getKLowerLim();
+
     public abstract int getKUpperLim();
+
     public abstract AttributeType getKType();
+
     public abstract List<AttributeType> getMandatories();
+
     public abstract List<AttributeType> getOptionals();
+
+    @Override
+    public List<GraphAttribute> getAllOrderedAttributes() {
+        List<GraphAttribute> allAtts = new ArrayList<>(orderedMandatoryAtts);
+        allAtts.addAll(orderedOptionalAtts);
+        return allAtts;
+    }
 
     public boolean fitKType(PrimaryKey k1) {
         Set<PrimaryAttribute> k1Atts = k1.getPAttributes();
@@ -66,10 +84,14 @@ public abstract class BasicGraphPlan extends GraphPlan {
         }
 
         Set<GraphPlan> plans = new HashSet<>();
-        List<List<Attribute>> possibleOrders = findMandatoryAndOptionalAttsOrder(unorderedAtts, getMandatories(), getOptionals());
+        List<List<GraphAttribute>> possibleOrders = findMandatoryAndOptionalAttsOrder(unorderedAtts, getMandatories(), getOptionals());
 
-        for (List<Attribute> possibleOrder : possibleOrders) {
-            plans.add(getInstance(k1, possibleOrder, new ArrayList<>()));
+        int numMandatories = getMandatories().size();
+        for (List<GraphAttribute> possibleOrder : possibleOrders) {
+            List<GraphAttribute> possibleMandOrder = possibleOrder.subList(0, numMandatories);
+            List<GraphAttribute> possibleOptOrder = possibleOrder.subList(numMandatories, possibleOrder.size());
+
+            plans.add(getInstance(k1, possibleMandOrder, possibleOptOrder));
         }
 
         return plans;

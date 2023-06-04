@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -20,8 +21,8 @@
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" percentWidth="5.0" />
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
         <ColumnConstraints hgrow="NEVER" />
-      <ColumnConstraints hgrow="NEVER" />
-      <ColumnConstraints hgrow="NEVER" percentWidth="3.0" />
+      <ColumnConstraints hgrow="NEVER" percentWidth="30.0" />
+      <ColumnConstraints hgrow="NEVER" percentWidth="2.0" />
       <ColumnConstraints halignment="CENTER" />
       <ColumnConstraints hgrow="ALWAYS" />
     </columnConstraints>
@@ -49,19 +50,14 @@
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
-      <WebView minHeight="375.0" minWidth="600.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.columnSpan="3" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.rowSpan="2" />
-      <Button mnemonicParsing="false" onAction="#onHomeButtonClick" text="Go Home" GridPane.columnIndex="6" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="BOTTOM">
-         <GridPane.margin>
-            <Insets right="40.0" />
-         </GridPane.margin>
-      </Button>
+      <WebView fx:id="graphWebView" minHeight="375.0" minWidth="600.0" prefHeight="-1.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="4" GridPane.halignment="LEFT" GridPane.rowIndex="4" GridPane.rowSpan="2" />
       <ScrollPane hbarPolicy="NEVER" style="-fx-background-color: transparent;" GridPane.columnIndex="6" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.vgrow="ALWAYS">
          <content>
-            <VBox fx:id="attributesVBox" alignment="TOP_CENTER">
+            <VBox fx:id="attTypesVBox" alignment="TOP_CENTER">
                <children>
                   <HBox fx:id="attributeHBoxTemplate" alignment="CENTER_LEFT" visible="false">
                      <children>
-                        <Label fx:id="typeLabelTemplate" minWidth="130.0" text="Type:" wrapText="true" HBox.hgrow="NEVER">
+                        <Label fx:id="typeLabelTemplate" maxWidth="60.0" minWidth="60.0" styleClass="graph-select-type-label" text="Type:" wrapText="true" HBox.hgrow="NEVER">
                            <HBox.margin>
                               <Insets />
                            </HBox.margin>
@@ -69,7 +65,7 @@
                               <Font name="System Bold" size="13.0" />
                            </font>
                         </Label>
-                        <ChoiceBox fx:id="typeChoiceBoxTemplate" minWidth="150.0" HBox.hgrow="NEVER" />
+                        <ChoiceBox fx:id="typeChoiceBoxTemplate" minWidth="180.0" HBox.hgrow="NEVER" />
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="graph-select-type-label" text="*">
                            <HBox.margin>
                               <Insets left="4.0" />
@@ -90,5 +86,20 @@
             <Insets bottom="10.0" />
          </GridPane.margin>
       </ScrollPane>
+      <HBox GridPane.columnIndex="6" GridPane.rowIndex="5">
+         <children>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="onModelSelectButtonClick" mnemonicParsing="false" text="Model Select">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin>
+            </Button>
+            <Button mnemonicParsing="false" onAction="#onHomeButtonClick" text="Go Home">
+               <HBox.margin>
+                  <Insets right="40.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+      </HBox>
    </children>
 </GridPane>

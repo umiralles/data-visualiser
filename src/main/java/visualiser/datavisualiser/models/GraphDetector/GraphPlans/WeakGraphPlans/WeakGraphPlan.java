@@ -1,11 +1,15 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans;
 
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public abstract class WeakGraphPlan extends GraphPlan {
 
@@ -14,21 +18,26 @@ public abstract class WeakGraphPlan extends GraphPlan {
     // Owner entity attribute
     private final PrimaryKey k2;
     // Attributes from weak entity
-    private final List<Attribute> orderedMandatoryAtts;
-    private final List<Attribute> orderedOptionalAtts;
+    private final List<GraphAttribute> orderedMandatoryAtts;
+    private final List<GraphAttribute> orderedOptionalAtts;
 
-    WeakGraphPlan(PrimaryKey k1, PrimaryKey k2, List<Attribute> orderedMandatoryAtts, List<Attribute> orderedOptionalAtts) {
+    WeakGraphPlan(PrimaryKey k1, PrimaryKey k2, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
         this.k1 = k1;
         this.k2 = k2;
         this.orderedMandatoryAtts = orderedMandatoryAtts;
         this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
-    public List<Attribute> getOrderedMandatories() {
+    @Override
+    public String getName() {
+        return k1.getTable() + " - " + k2.getTable();
+    }
+
+    public List<GraphAttribute> getOrderedMandatories() {
         return orderedMandatoryAtts;
     }
 
-    public List<Attribute> getOrderedOptionals() {
+    public List<GraphAttribute> getOrderedOptionals() {
         return orderedOptionalAtts;
     }
 
@@ -39,16 +48,31 @@ public abstract class WeakGraphPlan extends GraphPlan {
     }
 
     public abstract WeakGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
-                                              List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts);
+                                              List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts);
+
+    @Override
+    public List<GraphAttribute> getAllOrderedAttributes() {
+        List<GraphAttribute> allAtts = new ArrayList<>(orderedMandatoryAtts);
+        allAtts.addAll(orderedOptionalAtts);
+        return allAtts;
+    }
 
     public abstract String getPlanName();
+
     public abstract int getK1LowerLim();
+
     public abstract int getK1UpperLim();
+
     public abstract AttributeType getK1Type();
+
     public abstract int getK2LowerLim();
+
     public abstract int getK2UpperLim();
+
     public abstract AttributeType getK2Type();
+
     public abstract boolean isCompleteRelationship();
+
     public abstract List<AttributeType> getMandatories();
     public abstract List<AttributeType> getOptionals();
 
@@ -64,7 +88,7 @@ public abstract class WeakGraphPlan extends GraphPlan {
 //        return plans;
 //    }
 
-    private List<List<Attribute>> orderAttributesByType(Attribute k1Att, Attribute k2Att, List<Attribute> atts) {
+    private List<List<GraphAttribute>> orderAttributesByType(Attribute k1Att, Attribute k2Att, List<Attribute> atts) {
         int attSize = atts.size();
         int smallestAttsSize = getMandatories().size();
         int largestAttsSize = smallestAttsSize + getOptionals().size();

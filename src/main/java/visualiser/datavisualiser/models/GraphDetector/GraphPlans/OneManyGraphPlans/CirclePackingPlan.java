@@ -1,8 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans;
 
 import visualiser.datavisualiser.models.ERModel.AttributeType;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class CirclePackingPlan extends OneManyGraphPlan {
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
     private CirclePackingPlan(PrimaryKey k1, PrimaryKey k2,
-                              List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                              List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         super(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 
@@ -29,7 +29,7 @@ public class CirclePackingPlan extends OneManyGraphPlan {
 
     @Override
     public OneManyGraphPlan getInstance(PrimaryKey k1, PrimaryKey k2,
-                                        List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                                        List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         return new CirclePackingPlan(k1, k2, orderedMandAtts, orderedOptionalAtts);
     }
 

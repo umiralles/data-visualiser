@@ -1,11 +1,14 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
+import visualiser.datavisualiser.models.GoogleChart.ChartType;
+import visualiser.datavisualiser.models.GoogleChart.DataTable;
+import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ScatterDiagramPlan extends BasicGraphPlan {
 
@@ -17,7 +20,7 @@ public class ScatterDiagramPlan extends BasicGraphPlan {
     private static final List<AttributeType> optionals = List.of(AttributeType.COLOUR);
 
     private ScatterDiagramPlan(PrimaryKey k1,
-                          List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                               List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         super(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
@@ -27,7 +30,7 @@ public class ScatterDiagramPlan extends BasicGraphPlan {
 
     @Override
     public BasicGraphPlan getInstance(PrimaryKey k1,
-                                      List<Attribute> orderedMandAtts, List<Attribute> orderedOptionalAtts) {
+                                      List<GraphAttribute> orderedMandAtts, List<GraphAttribute> orderedOptionalAtts) {
         return new ScatterDiagramPlan(k1, orderedMandAtts, orderedOptionalAtts);
     }
 
@@ -58,6 +61,18 @@ public class ScatterDiagramPlan extends BasicGraphPlan {
     @Override
     public List<AttributeType> getOptionals() {
         return optionals;
+    }
+
+    @Override
+    public GoogleChart getChart(DataTable unprocessedData, int width, int height) {
+        GoogleChart chart = super.getChart(unprocessedData, width, height);
+
+        // Are colours needed?getChart
+        Optional<GraphAttribute> optColourAtt = getOrderedOptionals().stream()
+                .dropWhile(opt -> opt.typeInGraph() != AttributeType.COLOUR || opt.attribute() == null).findFirst();
+        optColourAtt.ifPresent(graphAttribute -> chart.convertToHexColour(graphAttribute.attribute()));
+
+        return chart;
     }
 
     @Override

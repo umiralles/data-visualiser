@@ -1,6 +1,8 @@
 package visualiser.datavisualiser.models.GoogleChart;
 
+import javafx.scene.paint.Color;
 import org.json.JSONObject;
+import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -20,10 +22,10 @@ public class GoogleChart {
     private JSONObject chartJson = null;
 
     public GoogleChart(String divName, DataTable dataTable, JSONObject options, ChartType type) {
-        this.divName = divName;
-        this.dataTable = dataTable;
-        this.options = options;
-        this.type = type;
+        this.divName = Objects.requireNonNull(divName);
+        this.dataTable = Objects.requireNonNull(dataTable);
+        this.options = Objects.requireNonNull(options);
+        this.type = Objects.requireNonNull(type);
     }
 
     public GoogleChart(String divName, List<Column> columns, List<List<DataCell>> rows,
@@ -33,6 +35,10 @@ public class GoogleChart {
 
     public GoogleChart(String divName, DataTable dataTable, HashMap<String, String> options, ChartType type) {
         this(divName, dataTable, new JSONObject(options), type);
+    }
+
+    public GoogleChart(String divName, DataTable dataTable, ChartType type) {
+        this(divName, dataTable, new JSONObject(), type);
     }
 
     public GoogleChart(String divName, List<Column> columns, List<List<DataCell>> rows,
@@ -52,6 +58,15 @@ public class GoogleChart {
                 .put("height", height);
 
         setOptions(newOptions);
+    }
+
+    public void addColourAxis(String startColour, String endColour) {
+        options.put("colorAxis",
+                new JSONObject().put("colors", new String[]{startColour, endColour}));
+    }
+
+    public void addColourAxis() {
+        addColourAxis("yellow", "red");
     }
 
     public void setType(ChartType type) {
@@ -95,5 +110,14 @@ public class GoogleChart {
 
     public void writeJson(String fileName) {
         writeJson(fileName, getJson());
+    }
+
+    public void convertToHexColour(Attribute attribute, Color startColour, Color endColour) {
+        List<String> hexColours = dataTable.convertToHexColour(attribute, startColour, endColour);
+        options.put("colors", hexColours.toArray(new String[0]));
+    }
+
+    public void convertToHexColour(Attribute attribute) {
+        convertToHexColour(attribute, Color.YELLOW, Color.RED);
     }
 }

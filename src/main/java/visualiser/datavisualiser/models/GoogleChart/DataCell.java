@@ -31,6 +31,10 @@ public class DataCell {
         this(value, type, null, null);
     }
 
+    public String getValue() {
+        return value;
+    }
+
     public DataType getType() {
         return type;
     }
