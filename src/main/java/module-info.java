@@ -6,7 +6,7 @@ module visualiser.datavisualiser {
     requires org.kordamp.ikonli.javafx;
     requires java.sql;
     requires javafx.web;
-    requires json;
+    requires org.json;
     requires org.reflections;
 
     opens visualiser.datavisualiser to javafx.fxml;
