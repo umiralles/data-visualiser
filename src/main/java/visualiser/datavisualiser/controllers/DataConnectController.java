@@ -35,11 +35,12 @@ public class DataConnectController {
         ERModel rm = processDatabase(urlField.getText(), usernameField.getText(), passwordField.getText(), schemaField.getText());
 
 
-        HashSet<InclusionDependency> ids = rm.getIds();
-        HashSet<InclusionDependency> coveredIds = rm.getIds().stream().filter(InclusionDependency::isCovered).collect(Collectors.toCollection(HashSet::new));
-        ArrayList<String> coveredIdsStr = coveredIds.stream()
-                .map(id -> id.getA().getName() + "." + id.getX1().getColumn() + " < " + id.getB().getName() + "." + id.getX2().getColumn())
-                .collect(Collectors.toCollection(ArrayList::new));
+//        // TODO: testing
+//        HashSet<InclusionDependency> ids = rm.getIds();
+//        HashSet<InclusionDependency> coveredIds = rm.getIds().stream().filter(InclusionDependency::isCovered).collect(Collectors.toCollection(HashSet::new));
+//        ArrayList<String> coveredIdsStr = coveredIds.stream()
+//                .map(id -> id.getA().getName() + "." + id.getX1().getColumn() + " < " + id.getB().getName() + "." + id.getX2().getColumn())
+//                .collect(Collectors.toCollection(ArrayList::new));
 
         User user = new User();
         user.setERModel(rm);

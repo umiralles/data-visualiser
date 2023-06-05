@@ -33,10 +33,10 @@ public class ERModel {
     private final ArrayList<String> entityRelations;
     private final ArrayList<String> tableNames;
     private final HashMap<String, Relation> relations;
-    private final HashSet<InclusionDependency> ids;
+    private final HashMap<String, InclusionDependency> ids;
 
     // TODO: remove
-    public HashSet<InclusionDependency> getIds() {
+    public HashMap<String, InclusionDependency> getIds() {
         return ids;
     }
 
@@ -114,7 +114,7 @@ public class ERModel {
     }
 
     public BinaryRelationship getBinaryRelationship(InputAttribute k1, InputAttribute k2) {
-        Relationship rel = relationships.get(BinaryRelationship.generateName(k1.table(), k1.column(), k2.table(), k2.column()));
+        Relationship rel = relationships.get(BinaryRelationship.generateName(k1.table(), k2.table()));
 
         if (rel instanceof BinaryRelationship binRel) {
             return binRel;
@@ -489,8 +489,8 @@ public class ERModel {
         // TODO: Could use a condition checking if entityRelations are all classified
     }
 
-    private HashSet<InclusionDependency> collectInclusionDependencies(HashMap<String, Relation> relations) {
-        HashSet<InclusionDependency> inclusionDependencies = new HashSet<>();
+    private HashMap<String, InclusionDependency> collectInclusionDependencies(HashMap<String, Relation> relations) {
+        HashMap<String, InclusionDependency> inclusionDependencies = new HashMap<>();
 
         // Inclusion dependencies
         for (Relation relation : relations.values()) {
@@ -501,7 +501,7 @@ public class ERModel {
 
                 // Two STRONG relations have the same key, could be < or >
                 if (relation.getType() == RelationType.STRONG && otherRelation.getType() == RelationType.STRONG) {
-                    if (inclusionDependencies.stream().anyMatch(
+                    if (inclusionDependencies.values().stream().anyMatch(
                             (id) -> (id.getA().equals(relation) && id.getB().equals(otherRelation))
                                     || (id.getA().equals(otherRelation) && id.getB().equals(relation)))) {
                         // this pair has been analysed before
@@ -517,8 +517,10 @@ public class ERModel {
                         Attribute pka = relationAtts.get(i);
                         Attribute otherPka = otherRelationAtts.get(i);
 
-                        inclusionDependencies.add(new InclusionDependency(relation, pka, otherRelation, otherPka));
-                        inclusionDependencies.add(new InclusionDependency(otherRelation, otherPka, relation, pka));
+                        inclusionDependencies.put(InclusionDependency.generateName(pka, otherPka),
+                                new InclusionDependency(relation, pka, otherRelation, otherPka));
+                        inclusionDependencies.put(InclusionDependency.generateName(otherPka, pka),
+                                new InclusionDependency(otherRelation, otherPka, relation, pka));
                     }
                 }
 
@@ -532,7 +534,8 @@ public class ERModel {
                     for (int i = 0; i < relationAtts.size(); i++) {
                         Attribute relationAtt = relationAtts.get(i);
                         Attribute otherRelationAtt = otherRelationAtts.get(i);
-                        inclusionDependencies.add(new InclusionDependency(otherRelation, otherRelationAtt, relation, relationAtt));
+                        inclusionDependencies.put(InclusionDependency.generateName(otherRelationAtt, relationAtt),
+                                new InclusionDependency(otherRelation, otherRelationAtt, relation, relationAtt));
                     }
                 }
 
@@ -551,7 +554,8 @@ public class ERModel {
                         Attribute pKAtt = relationAtts.get(i);
                         Attribute key = otherRelationAtts.get(i);
 
-                        inclusionDependencies.add(new InclusionDependency(relation, pKAtt, otherRelation, key));
+                        inclusionDependencies.put(InclusionDependency.generateName(pKAtt, key),
+                                new InclusionDependency(relation, pKAtt, otherRelation, key));
                     }
                 }
             }
@@ -584,27 +588,31 @@ public class ERModel {
     }
 
     // DOES modify ids
-    private void removeInvalidInclusionDependencies(HashSet<InclusionDependency> ids) throws SQLException {
-        for (InclusionDependency id : (HashSet<InclusionDependency>) ids.clone()) {
+    private void removeInvalidInclusionDependencies(HashMap<String, InclusionDependency> ids) throws SQLException {
+        for (InclusionDependency id : new ArrayList<>(ids.values())) {
             HashSet<Object> x1Vals = new HashSet<>(getAllValues(id.getX1()));
             x1Vals.remove(null);
             HashSet<Object> x2Vals = new HashSet<>(getAllValues(id.getX2()));
             x2Vals.remove(null);
 
-            if (/*x1Vals.size() == 0 || */ !x2Vals.containsAll(x1Vals)) {
-                ids.remove(id);
+            boolean x1sContainedInX2s = x2Vals.containsAll(x1Vals);
+
+            if (/*x1Vals.size() == 0 || */ !x1sContainedInX2s) {
+                ids.remove(id.getName());
             }
 
-            if (x2Vals.size() == x1Vals.size()) {
+            boolean x2sContainedInX1s = x1Vals.containsAll(x2Vals);
+
+            if (x2Vals.size() == x1Vals.size() && x1sContainedInX2s && x2sContainedInX1s) {
                 id.setCovered();
             }
         }
     }
 
     // DOES modify ids
-    private void removeRedundantInclusionDependencies(HashSet<InclusionDependency> ids) throws SQLException {
+    private void removeRedundantInclusionDependencies(HashMap<String, InclusionDependency> ids) throws SQLException {
         // Make a copy of ids since some values will be removed
-        HashSet<InclusionDependency> idsCopy = (HashSet<InclusionDependency>) ids.clone();
+        List<InclusionDependency> idsCopy = new ArrayList<>(ids.values());
 
         for (InclusionDependency idA : idsCopy) {
             for (InclusionDependency idB : idsCopy) {
@@ -620,7 +628,7 @@ public class ERModel {
                 yVals.remove(null);
 
                 if (xVals.containsAll(yVals)) {
-                    ids.remove(new InclusionDependency(idA.getA(), idA.getX1(), idB.getB(), idB.getX2()));
+                    ids.remove(InclusionDependency.generateName(idA.getX1(), idB.getX2()));
                 }
             }
         }
@@ -628,7 +636,7 @@ public class ERModel {
     }
 
     // Does NOT modify relations or ids
-    private HashMap<String, EntityType> collectEntities(HashMap<String, Relation>  relations, HashSet<InclusionDependency> ids) {
+    private HashMap<String, EntityType> collectEntities(HashMap<String, Relation>  relations, HashMap<String, InclusionDependency> ids) {
         HashMap<String, EntityType> entities = new HashMap<>();
 
         for (Relation relation : relations.values()) {
@@ -640,10 +648,10 @@ public class ERModel {
             if (relation.getType() == RelationType.WEAK) {
                 // Check if the primary key attributes X of 'relation' W appear as the key of an entity relation
                 //      (strong or weak) A such that W.X < A.X
-                HashSet<InclusionDependency> idsW = ids.stream().filter((id) -> id.getA().equals(relation))
+                HashSet<InclusionDependency> weakIds = ids.values().stream().filter((id) -> id.getA().equals(relation))
                         .collect(Collectors.toCollection(HashSet::new));
                 HashSet<Relation> possibleOwners = new HashSet<>();
-                for (InclusionDependency id : idsW) {
+                for (InclusionDependency id : weakIds) {
                     Relation otherRelation = id.getB();
                     if (!otherRelation.isEntityRelation()) {
                         continue;
@@ -669,7 +677,7 @@ public class ERModel {
     }
 
     // Does NOT modify relations or ids
-    public HashMap<String, Relationship> collectRelationships(HashMap<String, Relation> relations, HashSet<InclusionDependency> ids) {
+    public HashMap<String, Relationship> collectRelationships(HashMap<String, Relation> relations, HashMap<String, InclusionDependency> ids) {
         HashMap<String, Relationship> relationships = new HashMap<>();
         for (Relation relation : relations.values()) {
             /* INCLUSION RELATIONSHIPS */
@@ -725,7 +733,7 @@ public class ERModel {
                     Attribute relationAtt = relationAtts.get(i);
 
                     InclusionDependency potentialBinRelation = new InclusionDependency(relation, relationAtt, otherRelation, otherAtt);
-                    if (ids.contains(potentialBinRelation)) {
+                    if (ids.get(potentialBinRelation.getName()) != null) {
                         potentialBinRelations.add(potentialBinRelation);
                     }
                 }
@@ -733,22 +741,21 @@ public class ERModel {
 
             // TODO: if more than one possible, ask user?? but why
             // TODO: eg. airport has two potentials: island and city which are both binary relationships??? How to do this?
-            if (potentialBinRelations.size() > 0) {
-                for (InclusionDependency id : potentialBinRelations) {
-                    BinaryRelationship newBr = new BinaryRelationship(id);
-
-                    relationships.put(newBr.getName(), newBr);
-                }
+            if (potentialBinRelations.size() == 0) {
+                continue;
             }
+
+            BinaryRelationship newBr = new BinaryRelationship(potentialBinRelations);
+            relationships.put(newBr.getName(), newBr);
         }
 
         /* BINARY RELATIONSHIPS 2 */
         // An inclusion dependency exists between two non-key attributes A.x < B.y
-        for (InclusionDependency id : ids) {
+        for (InclusionDependency id : ids.values()) {
             // TODO: should this be for both non keys and foreign non keys or just non keys? I think both
             if ((id.getA().hasNonKey(id.getX1()) || id.getA().hasNonPKForeignKey(id.getX1()))
                     && (id.getB().hasNonKey(id.getX2()) || id.getA().hasNonPKForeignKey(id.getX2()))) {
-                BinaryRelationship newBr = new BinaryRelationship(id);
+                BinaryRelationship newBr = new BinaryRelationship(List.of(id));
 
                 relationships.put(newBr.getName(), newBr);
             }
@@ -766,7 +773,7 @@ public class ERModel {
 
             // Find possible participating inclusion dependencies/entity types
             HashSet<EntityType> relParts = new HashSet<>();
-            for (InclusionDependency id : ids) {
+            for (InclusionDependency id : ids.values()) {
                 Relation relPart = id.getB();
                 if (!id.getA().equals(rel) || !relPart.isEntityRelation() ||
                     // Check that A's primary attributes are a subset of rel's
@@ -776,7 +783,7 @@ public class ERModel {
 
                 boolean allAPksHaveIds = true;
                 for (PrimaryAttribute x2Pka : relPart.getPrimaryKeySet()) {
-                    if (!ids.contains(new InclusionDependency(rel, rel.findInPrimaryKey(x2Pka), relPart, x2Pka))) {
+                    if (ids.get(InclusionDependency.generateName(rel.findInPrimaryKey(x2Pka), x2Pka)) == null) {
                         allAPksHaveIds = false;
                         break;
                     }

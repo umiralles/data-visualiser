@@ -4,45 +4,49 @@ import visualiser.datavisualiser.models.ERModel.InclusionDependency;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class BinaryRelationship extends Relationship {
 
-    private final Attribute x1;
-    private final Attribute x2;
+    private final List<Attribute> x1s;
+    private final List<Attribute> x2s;
 
     // represents a binary relationship where a is 0:1 and b is 0:N
-    public BinaryRelationship(Relation a, Attribute x1, Relation b, Attribute x2) {
+    public BinaryRelationship(Relation a, List<Attribute> x1s, Relation b, List<Attribute> x2s) {
         super(a, b);
 
-        this.x1 = x1;
-        this.x2 = x2;
+        this.x1s = x1s;
+        this.x2s = x2s;
     }
 
-    public BinaryRelationship(InclusionDependency id) {
-        this(id.getA(), id.getX1(), id.getB(), id.getX2());
+    public BinaryRelationship(List<InclusionDependency> ids) {
+        this(ids.get(0).getA(), ids.stream().map(InclusionDependency::getX1).toList(),
+                ids.get(0).getB(), ids.stream().map(InclusionDependency::getX2).toList());
+        // TODO: All ids should be for the same relations, ids must contain at least one item
     }
 
-    public Attribute getX1() {
-        return x1;
+    public List<Attribute> getX1s() {
+        return x1s;
     }
 
-    public Attribute getX2() {
-        return x2;
+    public List<Attribute> getX2s() {
+        return x2s;
     }
 
-    public static String generateName(String table1, String column1, String table2, String column2) {
-        return table1 + "." + column1 + " < " + table2 + "." + column2;
+    public static String generateName(String table1, String table2) {
+        return table1 + " << " + table2;
     }
 
     @Override
     public String getName() {
-        return generateName(x1.getTable(), x1.getColumn(), x2.getTable(), x2.getColumn());
+        return generateName(getA().getName(), getB().getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getA(), getB(), x1, x2);
+        return Objects.hash(getA(), getB(), x1s, x2s);
     }
 
     @Override
@@ -51,6 +55,6 @@ public class BinaryRelationship extends Relationship {
             return false;
         }
 
-        return getA().equals(eq.getA()) && getB().equals(eq.getB()) && x1.equals(eq.x1) && x2.equals(eq.x2);
+        return getA().equals(eq.getA()) && getB().equals(eq.getB()) && x1s.equals(eq.x1s) && x2s.equals(eq.x2s);
     }
 }

@@ -4,6 +4,7 @@ import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 
@@ -48,12 +49,20 @@ public class InclusionDependency {
         this.is_covered = true;
     }
 
-    public static boolean idsExistBetweenAllPrimaryKeyAtts(Relation x1, Relation x2, HashSet<InclusionDependency> ids) {
+    public String getName() {
+        return generateName(x1, x2);
+    }
+
+    public static String generateName(Attribute x1, Attribute x2) {
+        return x1.getTable() + "." + x1.getColumn() + " < " + x2.getTable() + "." + x2.getColumn();
+    }
+
+    public static boolean idsExistBetweenAllPrimaryKeyAtts(Relation x1, Relation x2, HashMap<String, InclusionDependency> ids) {
         HashSet<PrimaryAttribute> as = x1.getPrimaryKeyAtts();
         HashSet<PrimaryAttribute> bs = x2.getPrimaryKeyAtts();
 
         for (PrimaryAttribute a : as) {
-            boolean aHasId = bs.stream().dropWhile(b -> !ids.contains(new InclusionDependency(x1, a, x2, b)))
+            boolean aHasId = bs.stream().dropWhile(b -> ids.get(InclusionDependency.generateName(a, b)) == null)
                     .findFirst().isPresent();
 
             if (!aHasId) {
