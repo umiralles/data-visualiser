@@ -100,19 +100,9 @@ public class DataModelController implements Initializable {
         GraphDetector gd = null;
         switch (currVisPattern) {
             case BASIC_ENTITY -> gd = GraphDetector.generateBasicPlans(rm, selectedE1, getCheckedAttributes());
-            case WEAK_ENTITY -> {
-                // Possibly not the right way round?
-//                gd = GraphDetector.generateWeakPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case ONE_MANY_REL -> {
-//                gd = GraphDetector.generateOneManyPlans(rm, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case MANY_MANY_REL -> {
-//                gd = GraphDetector.generateManyManyPlans(rm, false, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
-            case REFLEXIVE -> {
-//                gd = GraphDetector.generateManyManyPlans(rm, true, new InputAttribute(k1), new InputAttribute(k2), inpAtts);
-            }
+            case WEAK_ENTITY -> gd = GraphDetector.generateWeakPlans((BinaryRelationship) currRelationship, getCheckedAttributes());
+            case ONE_MANY_REL -> gd = GraphDetector.generateOneManyPlans((BinaryRelationship) currRelationship, getCheckedAttributes());
+            case MANY_MANY_REL, REFLEXIVE -> gd = GraphDetector.generateManyManyPlans((NAryRelationship) currRelationship, getCheckedAttributes());
         }
 
         if (gd == null) {

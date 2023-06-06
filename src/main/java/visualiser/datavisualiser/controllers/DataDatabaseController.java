@@ -152,36 +152,36 @@ public class DataDatabaseController implements Initializable {
         }
 
         /* WEAK ENTITY GRAPH */
-        if (k1Ent instanceof WeakEntityType && ((WeakEntityType) k1Ent).getOwnerName().equals(k2Ent.getName())) {
-            GraphDetector gd = GraphDetector.generateWeakPlans(rm, k1, k2, attributes);
-            user.setGraphDetector(gd);
-
-        } else if (k2Ent instanceof WeakEntityType && ((WeakEntityType) k2Ent).getOwnerName().equals(k1Ent.getName())) {
-            GraphDetector gd = GraphDetector.generateWeakPlans(rm, k2, k1, attributes);
-            user.setGraphDetector(gd);
-        }
+//        if (k1Ent instanceof WeakEntityType && ((WeakEntityType) k1Ent).getOwnerName().equals(k2Ent.getName())) {
+//            GraphDetector gd = GraphDetector.generateWeakPlans(rm, k1, k2, attributes);
+//            user.setGraphDetector(gd);
+//
+//        } else if (k2Ent instanceof WeakEntityType && ((WeakEntityType) k2Ent).getOwnerName().equals(k1Ent.getName())) {
+//            GraphDetector gd = GraphDetector.generateWeakPlans(rm, k2, k1, attributes);
+//            user.setGraphDetector(gd);
+//        }
 
         /* ONE MANY GRAPH */
-        BinaryRelationship br = rm.getBinaryRelationship(k2, k1);
-        if (br != null) {
-            GraphDetector gd = GraphDetector.generateOneManyPlans(rm, k1, k2, attributes);
-            // TODO: could also be a weak entity relationship gd?
-            user.setGraphDetector(gd);
-        }
+//        BinaryRelationship br = rm.getBinaryRelationship(k2, k1);
+//        if (br != null) {
+//            GraphDetector gd = GraphDetector.generateOneManyPlans(rm, k1, k2, attributes);
+//            // TODO: could also be a weak entity relationship gd?
+//            user.setGraphDetector(gd);
+//        }
 
         /* MANY MANY GRAPH */
-        Relation attRel = rm.getRelation(attTable);
-        if (attRel != null) {
-            // TODO: this is bad
-            NAryRelationship nAry = (NAryRelationship) rm.getRelationships().values().stream()
-                    .filter(rel -> rel instanceof NAryRelationship && ((NAryRelationship) rel).getRelationshipName().equals(attRel.getName()))
-                    .findFirst().orElse(null);
-            if (nAry != null) {
-                boolean reflexive = nAry.getA().equals(nAry.getB());
-                GraphDetector gd = GraphDetector.generateManyManyPlans(rm, reflexive, k1, k2, attributes);
-                user.setGraphDetector(gd);
-            }
-        }
+//        Relation attRel = rm.getRelation(attTable);
+//        if (attRel != null) {
+//            // TODO: this is bad
+//            NAryRelationship nAry = (NAryRelationship) rm.getRelationships().values().stream()
+//                    .filter(rel -> rel instanceof NAryRelationship && ((NAryRelationship) rel).getRelationshipName().equals(attRel.getName()))
+//                    .findFirst().orElse(null);
+//            if (nAry != null) {
+//                boolean reflexive = nAry.getA().equals(nAry.getB());
+//                GraphDetector gd = GraphDetector.generateManyManyPlans(rm, reflexive, k1, k2, attributes);
+//                user.setGraphDetector(gd);
+//            }
+//        }
 
         GraphDetector gd = user.getGraphDetector();
         if (gd != null) {

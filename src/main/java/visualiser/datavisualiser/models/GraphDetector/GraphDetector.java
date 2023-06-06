@@ -1,15 +1,20 @@
 package visualiser.datavisualiser.models.GraphDetector;
 
 import org.reflections.Reflections;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
-import visualiser.datavisualiser.models.DataTable.DataTable;
+import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
 import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.BasicGraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans.OneManyGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans.WeakGraphPlan;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
@@ -104,22 +109,138 @@ public class GraphDetector {
         return new GraphDetector(null, Set.of(eRel.getPrimaryKey()), new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateWeakPlans(ERModel rm, InputAttribute k1, InputAttribute k2,
-                                                  List<InputAttribute> attributes) {
+    public static GraphDetector generateWeakPlans(BinaryRelationship rel, List<Attribute> as) {
+        /* Checks for illegal arguments */
+        if (as.isEmpty()) {
+            throw new IllegalArgumentException("GraphDetector.generateWeakPlans: not enough attributes specified for weak relationship " + rel.getName());
+        }
 
-        return null;
+        Reflections reflections = new Reflections(WeakGraphPlan.class.getPackageName());
+        Set<Class<? extends WeakGraphPlan>> subClasses = reflections.getSubTypesOf(WeakGraphPlan.class);
+
+        Map<String, Set<GraphPlan>> plans = new HashMap<>();
+        for (Class<? extends WeakGraphPlan> subClass : subClasses) {
+            Set<GraphPlan> typePlans;
+            String planName;
+            try {
+                WeakGraphPlan dummyPlan = (WeakGraphPlan) subClass.getMethod("getDummyInstance").invoke(null);
+
+                if (dummyPlan == null) {
+                    throw new RuntimeException("GraphDetector.generateWeakPlans: subclass " +
+                            subClass.getName() + "has not overwritten getDummyInstance method.");
+                }
+
+                if ((dummyPlan.isCompleteRelationship() != rel.isComplete()) ||
+                        !dummyPlan.fitKTypes(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey())) {
+                    continue;
+                }
+
+                planName = dummyPlan.getPlanName();
+                typePlans = dummyPlan.fitAttributesToPlan(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey(), as);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (typePlans != null && !typePlans.isEmpty()) {
+                plans.put(planName, typePlans);
+            }
+        }
+
+        if (plans.isEmpty()) {
+            return null;
+        }
+
+        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+                new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateOneManyPlans(ERModel rm, InputAttribute k1, InputAttribute k2,
-                                                     List<InputAttribute> attributes) {
+    public static GraphDetector generateOneManyPlans(BinaryRelationship rel, List<Attribute> as) {
+        /* Checks for illegal arguments */
+        if (as.isEmpty()) {
+            throw new IllegalArgumentException("GraphDetector.generateOneManyPlans: not enough attributes specified for weak relationship " + rel.getName());
+        }
 
-        return null;
+        Reflections reflections = new Reflections(OneManyGraphPlan.class.getPackageName());
+        Set<Class<? extends OneManyGraphPlan>> subClasses = reflections.getSubTypesOf(OneManyGraphPlan.class);
+
+        Map<String, Set<GraphPlan>> plans = new HashMap<>();
+        for (Class<? extends OneManyGraphPlan> subClass : subClasses) {
+            Set<GraphPlan> typePlans;
+            String planName;
+            try {
+                OneManyGraphPlan dummyPlan = (OneManyGraphPlan) subClass.getMethod("getDummyInstance").invoke(null);
+
+                if (dummyPlan == null) {
+                    throw new RuntimeException("GraphDetector.generateOneManyPlans: subclass " +
+                            subClass.getName() + "has not overwritten getDummyInstance method.");
+                }
+
+                if (!dummyPlan.fitKTypes(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey())) {
+                    continue;
+                }
+
+                planName = dummyPlan.getPlanName();
+                typePlans = dummyPlan.fitAttributesToPlan(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey(), as);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (typePlans != null && !typePlans.isEmpty()) {
+                plans.put(planName, typePlans);
+            }
+        }
+
+        if (plans.isEmpty()) {
+            return null;
+        }
+
+        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+                new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateManyManyPlans(ERModel rm, boolean reflexive, InputAttribute k1, InputAttribute k2,
-                                                      List<InputAttribute> attributes) {
+    public static GraphDetector generateManyManyPlans(NAryRelationship rel, List<Attribute> as) {
+        /* Checks for illegal arguments */
+        if (as.isEmpty()) {
+            throw new IllegalArgumentException("GraphDetector.generateManyManyPlans: not enough attributes specified for weak relationship " + rel.getName());
+        }
 
-        return null;
+        Reflections reflections = new Reflections(ManyManyGraphPlan.class.getPackageName());
+        Set<Class<? extends ManyManyGraphPlan>> subClasses = reflections.getSubTypesOf(ManyManyGraphPlan.class);
+
+        Map<String, Set<GraphPlan>> plans = new HashMap<>();
+        for (Class<? extends ManyManyGraphPlan> subClass : subClasses) {
+            Set<GraphPlan> typePlans;
+            String planName;
+            try {
+                ManyManyGraphPlan dummyPlan = (ManyManyGraphPlan) subClass.getMethod("getDummyInstance").invoke(null);
+
+                if (dummyPlan == null) {
+                    throw new RuntimeException("GraphDetector.generateManyManyPlans: subclass " +
+                            subClass.getName() + "has not overwritten getDummyInstance method.");
+                }
+
+                if ((dummyPlan.isReflexiveRelationship() != rel.isReflexive()) ||
+                        !dummyPlan.fitKTypes(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey())) {
+                    continue;
+                }
+
+                planName = dummyPlan.getPlanName();
+                typePlans = dummyPlan.fitAttributesToPlan(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey(), as);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (typePlans != null && !typePlans.isEmpty()) {
+                plans.put(planName, typePlans);
+            }
+        }
+
+        if (plans.isEmpty()) {
+            return null;
+        }
+
+        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+                new HashSet<>(as), plans);
     }
 
     public Map<String, Set<GraphPlan>> getPlans() {

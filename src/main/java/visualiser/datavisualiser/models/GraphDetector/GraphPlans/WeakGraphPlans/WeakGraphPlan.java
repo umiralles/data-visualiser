@@ -2,14 +2,12 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans
 
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public abstract class WeakGraphPlan extends GraphPlan {
 
@@ -88,18 +86,53 @@ public abstract class WeakGraphPlan extends GraphPlan {
 //        return plans;
 //    }
 
-    private List<List<GraphAttribute>> orderAttributesByType(Attribute k1Att, Attribute k2Att, List<Attribute> atts) {
-        int attSize = atts.size();
+    public boolean fitKTypes(PrimaryKey k1, PrimaryKey k2) {
+        Set<PrimaryAttribute> k1Atts = k1.getPAttributes();
+        Set<PrimaryAttribute> k2Atts = k2.getPAttributes();
+
+        boolean k1Correct;
+        if (k1Atts.size() == 1) {
+            // If there is one primary attribute then use that to check the type
+            k1Correct = k1Atts.stream().findFirst().get().getDBType().getAttType().isType(getK1Type());
+        } else {
+            // If there are more than one primary attributes, the AttributeType is equivalent to LEXICAL
+            k1Correct = AttributeType.LEXICAL.isType(getK1Type());
+        }
+
+        if (k1Correct) {
+            if (k2Atts.size() == 1) {
+                // If there is one primary attribute then use that to check the type
+                return k2Atts.stream().findFirst().get().getDBType().getAttType().isType(getK2Type());
+            }
+
+            // If there are more than one primary attributes, the AttributeType is equivalent to LEXICAL
+            return AttributeType.LEXICAL.isType(getK2Type());
+        }
+
+        return false;
+    }
+
+    public Set<GraphPlan> fitAttributesToPlan(PrimaryKey k1, PrimaryKey k2, List<Attribute> unorderedAtts) {
+        int attSize = unorderedAtts.size();
         int smallestAttsSize = getMandatories().size();
         int largestAttsSize = smallestAttsSize + getOptionals().size();
 
-        if (attSize < smallestAttsSize || attSize > largestAttsSize
-                || !k1Att.getDBType().getAttType().isType(getK1Type())
-                || !k2Att.getDBType().getAttType().isType(getK2Type())) {
-            return Collections.emptyList();
+        if (attSize < smallestAttsSize || attSize > largestAttsSize) {
+            return Collections.emptySet();
         }
 
-        return findMandatoryAndOptionalAttsOrder(atts, getMandatories(), getOptionals());
+        Set<GraphPlan> plans = new HashSet<>();
+        List<List<GraphAttribute>> possibleOrders = findMandatoryAndOptionalAttsOrder(unorderedAtts, getMandatories(), getOptionals());
+
+        int numMandatories = getMandatories().size();
+        for (List<GraphAttribute> possibleOrder : possibleOrders) {
+            List<GraphAttribute> possibleMandOrder = possibleOrder.subList(0, numMandatories);
+            List<GraphAttribute> possibleOptOrder = possibleOrder.subList(numMandatories, possibleOrder.size());
+
+            plans.add(getInstance(k1, k2, possibleMandOrder, possibleOptOrder));
+        }
+
+        return plans;
     }
 
     @Override
