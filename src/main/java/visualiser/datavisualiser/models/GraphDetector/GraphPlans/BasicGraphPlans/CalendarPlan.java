@@ -2,7 +2,6 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlan
 
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
@@ -59,8 +58,4 @@ public class CalendarPlan extends BasicGraphPlan {
         return optionals;
     }
 
-    @Override
-    public ChartType getGoogleChartType() {
-        return ChartType.CALENDAR;
-    }
 }

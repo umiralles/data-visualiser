@@ -1,6 +1,6 @@
 package visualiser.datavisualiser.models.ERModel;
 
-import visualiser.datavisualiser.models.GoogleChart.DataType;
+import visualiser.datavisualiser.models.DataTable.DataType;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

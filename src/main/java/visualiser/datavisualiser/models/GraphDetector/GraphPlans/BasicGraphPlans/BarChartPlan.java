@@ -1,8 +1,10 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleBarChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.Collections;
@@ -59,9 +61,10 @@ public class BarChartPlan extends BasicGraphPlan {
     public List<AttributeType> getOptionals() {
         return optionals;
     }
-
+    
     @Override
-    public ChartType getGoogleChartType() {
-        return ChartType.BAR_CHART;
+    public Chart getChart(DataTable dataTable) {
+        String yAtt = getOrderedMandatoryAtts().get(0).attribute().toString();
+        return new GoogleBarChart(dataTable, getK1().toString(), yAtt);
     }
 }

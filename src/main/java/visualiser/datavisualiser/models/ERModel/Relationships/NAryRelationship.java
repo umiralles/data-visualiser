@@ -9,13 +9,13 @@ import java.util.Objects;
 public class NAryRelationship extends Relationship {
 
     private final String relationshipName;
-    private final Relation relationship;
+    private final Relation relationshipRelation;
     private HashSet<Attribute> descriptiveAttributes;
 
-    public NAryRelationship(Relation relationship, Relation a, Relation b) {
+    public NAryRelationship(Relation relationshipRelation, Relation a, Relation b) {
         super(a, b);
-        this.relationshipName = relationship.getName();
-        this.relationship = relationship;
+        this.relationshipName = relationshipRelation.getName();
+        this.relationshipRelation = relationshipRelation;
     }
 
     @Override
@@ -25,6 +25,10 @@ public class NAryRelationship extends Relationship {
 
     public String getRelationshipName() {
         return relationshipName;
+    }
+
+    public Relation getRelationshipRelation() {
+        return relationshipRelation;
     }
 
     public void setDescriptiveAttributes(HashSet<Attribute> descriptiveAttributes) {
@@ -37,7 +41,7 @@ public class NAryRelationship extends Relationship {
 
     @Override
     public int hashCode() {
-        return Objects.hash(relationship);
+        return Objects.hash(relationshipRelation);
     }
 
     @Override
@@ -46,6 +50,6 @@ public class NAryRelationship extends Relationship {
             return false;
         }
 
-        return relationship.equals(eq.relationship);
+        return relationshipRelation.equals(eq.relationshipRelation);
     }
 }

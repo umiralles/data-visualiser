@@ -1,4 +1,4 @@
-package visualiser.datavisualiser.models.GoogleChart;
+package visualiser.datavisualiser.models.DataTable;
 
 import org.json.JSONObject;
 
@@ -39,29 +39,11 @@ public class DataCell {
         return type;
     }
 
-    public JSONObject generateJSON() {
-        if (value == null || value.isBlank() || value.equals("null")) {
-            return null;
-        }
+    public String getValueFormat() {
+        return valueFormat;
+    }
 
-        JSONObject cellJson = new JSONObject();
-
-        switch (type) {
-            case BOOLEAN -> cellJson.put("v", Boolean.valueOf(value));
-            case INT -> cellJson.put("v", Integer.valueOf(value));
-            case DOUBLE -> cellJson.put("v", Double.valueOf(value));
-            case FLOAT -> cellJson.put("v", Float.valueOf(value));
-            case STRING, DATE, DATETIME, TIMEOFDAY -> cellJson.put("v", value);
-        }
-
-        if (valueFormat != null && !valueFormat.isBlank()) {
-            cellJson.put("f", valueFormat);
-        }
-
-        if (properties != null && properties.length() > 0) {
-            cellJson.put("p", properties);
-        }
-
-        return cellJson;
+    public JSONObject getProperties() {
+        return properties;
     }
 }

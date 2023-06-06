@@ -4,34 +4,35 @@ import org.reflections.Reflections;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
-import visualiser.datavisualiser.models.GoogleChart.Column;
-import visualiser.datavisualiser.models.GoogleChart.DataCell;
-import visualiser.datavisualiser.models.GoogleChart.DataTable;
+import visualiser.datavisualiser.models.DataTable.DataTable;
+import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.BasicGraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GraphDetector {
 
     // used for generating the datatable
-    private final VisSchemaPattern vPattern;
+    private final Relationship relationship;
+    private final Set<PrimaryKey> primaryKeys;
     private final Set<Attribute> attributes;
     // map from graph type name -> possible graph plans
     private final Map<String, Set<GraphPlan>> plans;
 
     private DataTable data = null;
 
-    private GraphDetector(VisSchemaPattern vPattern, Set<Attribute> attributes, Map<String, Set<GraphPlan>> plans) {
-        this.vPattern = vPattern;
+    private GraphDetector(Relationship relationship, Set<PrimaryKey> primaryKeys, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans) {
+        this.relationship = relationship;
+        this.primaryKeys = primaryKeys;
         this.attributes = attributes;
         this.plans = plans;
     }
-
 
     // kInput: must be a key attribute of the entity
     // aInputs: all other attributes to be included. Must be part of the entity
@@ -100,7 +101,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(VisSchemaPattern.BASIC_ENTITY, new HashSet<>(as), plans);
+        return new GraphDetector(null, Set.of(eRel.getPrimaryKey()), new HashSet<>(as), plans);
     }
 
     public static GraphDetector generateWeakPlans(ERModel rm, InputAttribute k1, InputAttribute k2,
@@ -136,50 +137,8 @@ public class GraphDetector {
         }
 
         // make a datatable based on the attributes
-        switch (vPattern) {
-            case BASIC_ENTITY -> {
-                String table = attributes.stream().findFirst().get().getTable();
-                List<Attribute> attsList = attributes.stream().toList();
-                Set<String> attsStr = attsList.stream().map(Attribute::getColumn).collect(Collectors.toSet());
-
-                ArrayList<Column> columns = new ArrayList<>();
-                for (Attribute att : attsList) {
-                    columns.add(new Column(att.getDBType().getDataType(), att.getColumn()));
-                }
-
-                List<List<DataCell>> rows = rm.getRowsFromQueryAndAtts(generateBasicEntityQuery(rm, table, attsStr), attsList);
-
-                data = new DataTable(attsList, columns, rows);
-            }
-
-            case WEAK_ENTITY -> {
-            }
-            case ONE_MANY_REL -> {
-            }
-            case MANY_MANY_REL -> {
-            }
-            case REFLEXIVE -> {
-            }
-        }
+        this.data = rm.getDataTableWithAttributes(relationship, primaryKeys, attributes);
 
         return data;
-    }
-
-    private static String generateBasicEntityQuery(ERModel rm, String table, Set<String> columns) {
-        assert columns.size() > 0;
-
-        ArrayList<String> colsArr = new ArrayList<>(columns);
-
-        StringBuilder q = new StringBuilder("SELECT ");
-        q.append(colsArr.get(0));
-
-        for (int i = 1; i < colsArr.size(); i++) {
-            q.append(", ");
-            q.append(colsArr.get(i));
-        }
-
-        q.append(" FROM ").append(rm.getSchemaPattern()).append(".").append(table);
-
-        return q.toString();
     }
 }

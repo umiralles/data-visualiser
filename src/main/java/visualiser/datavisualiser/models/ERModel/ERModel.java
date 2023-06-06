@@ -1,6 +1,9 @@
 package visualiser.datavisualiser.models.ERModel;
 
-import visualiser.datavisualiser.models.GoogleChart.DataCell;
+import visualiser.datavisualiser.models.DataTable.Column;
+import visualiser.datavisualiser.models.DataTable.DataCell;
+import visualiser.datavisualiser.models.DataTable.DataTable;
+import visualiser.datavisualiser.models.DataTable.DataType;
 import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.ERModel.Entities.StrongEntityType;
@@ -145,7 +148,81 @@ public class ERModel {
         return relations.get(name);
     }
 
-    public List<List<DataCell>> getRowsFromQueryAndAtts(String query, List<Attribute> atts) throws SQLException {
+    public DataTable getDataTableWithAttributes(Relationship rel, Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
+        ArrayList<Column> columns = new ArrayList<>();
+        for (PrimaryKey key : pks) {
+            columns.add(new Column(DataType.STRING, key.toString(), key.getTable()));
+        }
+
+        for (Attribute att : atts) {
+            columns.add(new Column(att.getDBType().getDataType(), att.toString(), att.getColumn()));
+        }
+
+        Set<Attribute> queryAtts = new HashSet<>(atts);
+        pks.forEach(key -> queryAtts.addAll(key.getPAttributes()));
+
+        List<List<DataCell>> rows = getRowsFromQueryAndAtts(generateQuery(rel, queryAtts), new ArrayList<>(pks), new ArrayList<>(atts));
+
+        return new DataTable(columns, rows);
+    }
+
+    private String generateQuery(Relationship rel, Set<Attribute> atts) {
+        List<Attribute> attsList = new ArrayList<>(atts);
+
+        StringBuilder q = new StringBuilder("SELECT ");
+        q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn());
+        for (int i = 1; i < attsList.size(); i++) {
+            q.append(", ").append(attsList.get(i).getTable()).append('.').append(attsList.get(i).getColumn());
+        }
+
+        q.append(" FROM ");
+
+        if (rel == null) {
+            // Basic entity query needed, so no joins
+            q.append(schemaPattern).append('.').append(attsList.get(0).getTable());
+
+        } else if (rel instanceof BinaryRelationship binRel) {
+            q.append(schemaPattern).append('.').append(binRel.getA()).append('\n');
+            q.append(getInnerJoinQuery(binRel.getB().getName(), binRel.getX1s(), binRel.getX2s()));
+
+        } else if (rel instanceof NAryRelationship nAryRel) {
+            q.append(schemaPattern).append('.').append(nAryRel.getA()).append('\n');
+            Relation relationshipRel = nAryRel.getRelationshipRelation();
+            List<ArrayList<Attribute>> aToRels = nAryRel.getA().findAttsExportedTo(relationshipRel);
+            List<ArrayList<Attribute>> bToRels = nAryRel.getB().findAttsExportedTo(relationshipRel);
+
+            q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1)));
+            q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
+        }
+
+        // TODO: Nothing for Inclusion Relationships
+
+        q.append('\n').append("WHERE ");
+        q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn()).append(" IS NOT NULL");
+        for (int i = 1; i < attsList.size(); i++) {
+            q.append(" AND ").append(attsList.get(i).getTable()).append('.').append(attsList.get(i).getColumn())
+                    .append(" IS NOT NULL");
+        }
+
+        return q.toString();
+    }
+
+    //  joinTable:          table to inner join on
+    //  viaTableAttributes: original table attributes
+    //  viaJoinAttributes:  joinTable attributes corresponding to the viaTableAttributes
+    private String getInnerJoinQuery(String joinTable, List<Attribute> viaTableAttributes, List<Attribute> viaJoinAttributes) {
+        StringBuilder q = new StringBuilder("INNER JOIN ");
+        q.append(schemaPattern).append(".").append(joinTable).append('\n').append("ON ");
+        q.append(viaTableAttributes.get(0)).append(" = ").append(viaJoinAttributes.get(0));
+
+        for (int i = 1; i < viaJoinAttributes.size(); i++) {
+            q.append(" AND ").append(viaTableAttributes.get(i)).append(" = ").append(viaJoinAttributes.get(i));
+        }
+
+        return q.toString();
+    }
+
+    private List<List<DataCell>> getRowsFromQueryAndAtts(String query, List<PrimaryKey> pks, List<Attribute> atts) throws SQLException {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(query);
 
@@ -154,7 +231,23 @@ public class ERModel {
         while(rs.next()){
             ArrayList<DataCell> row = new ArrayList<>();
 
+            for (PrimaryKey key : pks) {
+                List<PrimaryAttribute> pAtts = new ArrayList<>(key.getPAttributes());
+
+                // TODO: check that the rs call is right
+                String firstKeyVal = String.valueOf(rs.getObject(pAtts.get(0).getColumn()));
+                StringBuilder s = new StringBuilder(firstKeyVal);
+
+                for (int i = 1; i < key.getPAttributes().size(); i++) {
+                    String keyVal = String.valueOf(rs.getObject(pAtts.get(i).getColumn()));
+                    s.append(", ").append(keyVal);
+                }
+
+                row.add(new DataCell(s.toString(), DataType.STRING));
+            }
+
             for (Attribute att : atts) {
+                // TODO: check that the rs call is right
                 row.add(new DataCell(String.valueOf(rs.getObject(att.getColumn())), att.getDBType().getDataType()));
             }
 

@@ -1,10 +1,9 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
-import visualiser.datavisualiser.models.GoogleChart.DataTable;
-import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,18 +14,22 @@ public abstract class GraphPlan {
 
     public abstract List<GraphAttribute> getAllOrderedAttributes();
 
-    // Can be overwritten
-    public GoogleChart getChart(DataTable unprocessedData, int width, int height) {
-        DataTable orderedData = unprocessedData.getDataForPlan(this);
+//      TODO: make abstract again
+//    public abstract Chart getChart(DataTable dataTable);
 
-        GoogleChart chart = new GoogleChart("planChart", orderedData, getGoogleChartType());
-        chart.setOptions(getName(), width, height);
-        return chart;
-    }
+    public Chart getChart(DataTable dataTable) {
+        System.out.println("tried to print chart " + getClass().getName() + " " + getName());
 
-    // Can be overwritten
-    public ChartType getGoogleChartType() {
-        return ChartType.NOT_SUPPORTED;
+        if (getAllOrderedAttributes().isEmpty()) {
+            return null;
+        }
+
+        System.out.print(" with atts:");
+        for (GraphAttribute att : getAllOrderedAttributes()) {
+            System.out.println(att.attribute().toString());
+        }
+
+        return null;
     }
 
     protected static List<List<GraphAttribute>> findMandatoryAndOptionalAttsOrder(List<Attribute> atts,

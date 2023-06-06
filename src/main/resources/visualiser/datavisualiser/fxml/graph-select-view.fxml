@@ -89,7 +89,7 @@
       <HBox GridPane.columnIndex="6" GridPane.rowIndex="5">
          <children>
             <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="onModelSelectButtonClick" mnemonicParsing="false" text="Model Select">
+            <Button mnemonicParsing="false" onAction="#onModelSelectButtonClick" text="Model Select">
                <HBox.margin>
                   <Insets right="10.0" />
                </HBox.margin>
@@ -101,5 +101,10 @@
             </Button>
          </children>
       </HBox>
+      <Text fx:id="graphErrorText" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="scene-error-text" wrappingWidth="300.0" GridPane.columnIndex="4" GridPane.rowIndex="2">
+         <GridPane.margin>
+            <Insets left="10.0" />
+         </GridPane.margin>
+      </Text>
    </children>
 </GridPane>

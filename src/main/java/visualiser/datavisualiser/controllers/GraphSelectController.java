@@ -1,7 +1,6 @@
 package visualiser.datavisualiser.controllers;
 
 import javafx.collections.ObservableList;
-import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -11,15 +10,12 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import org.json.JSONObject;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
+import visualiser.datavisualiser.models.Charts.Chart;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
-import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
@@ -52,6 +48,9 @@ public class GraphSelectController implements Initializable {
     @FXML
     public ChoiceBox<String> typeChoiceBoxTemplate;
 
+    @FXML
+    public Text graphErrorText;
+
     // Plans that are of the graph type selected
     private List<GraphPlan> chosenPlans = null;
 
@@ -70,11 +69,15 @@ public class GraphSelectController implements Initializable {
     @FXML
     public void onModelSelectButtonClick() {
         User user = ViewUtils.receiveData();
-        user.setGraphDetector(null);
-        user.setVisSchemaPattern(null);
-        user.setRelationship(null);
-        ViewUtils.sendData(user);
-        ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
+//        user.setGraphDetector(null);
+//        user.setVisSchemaPattern(null);
+//        user.setRelationship(null);
+//        ViewUtils.sendData(user);
+//        ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
+
+        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Bubble Chart");
+
+        updateShownGraph(user.getERModel(), user.getGraphDetector(), pls.stream().findFirst().get());
     }
 
     @Override
@@ -116,15 +119,6 @@ public class GraphSelectController implements Initializable {
         });
 
         graphChoice.setValue(graphChoice.getItems().get(0));
-    }
-
-    // For WebView of width 775, height 500: width 765, height 480
-    // 700, 435
-    private JSONObject getGoogleChartOptions(String title) {
-        return new JSONObject()
-                .put("title", title)
-                .put("width", 690)
-                .put("height", 415);
     }
 
     private List<Attribute> getSelectedAttributes() {
@@ -228,38 +222,22 @@ public class GraphSelectController implements Initializable {
     }
 
     private void updateShownGraph(ERModel rm, GraphDetector gd, GraphPlan chosenPlan) {
-        if (chosenPlan.getGoogleChartType() == ChartType.NOT_SUPPORTED) {
-            System.out.println("Not supported chart: " + chosenPlan.getName());
-            return;
-        }
-
         this.chosenPlan = chosenPlan;
 
         try {
-            // TODO: Eventually chosenPlan.getChart(DataTable unorderedData)?
-//            DataTable orderedData = gd.getData(rm).getDataForPlan(chosenPlan);
-//
-//            GoogleChart chart = new GoogleChart("planChart", orderedData,
-//                    getGoogleChartOptions(chosenPlan.getName()), chosenPlan.getGoogleChartType());
+            Chart chart = chosenPlan.getChart(gd.getData(rm));
+            if (chart == null) {
+                graphErrorText.setText("This graph plan has no supported graph.");
+                return;
+            }
 
-            GoogleChart chart = chosenPlan.getChart(gd.getData(rm), 690, 415);
+            chart.setSize(690, 415);
+//            chart.testChart();
+            chart.showChart(graphWebView);
 
-            WebEngine engine = graphWebView.getEngine();
-            engine.load(getClass().getResource("html/google_chart.html").toExternalForm());
-
-            // Inject the JSON data into the WebView after the page finishes loading
-            engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue == Worker.State.SUCCEEDED) {
-                    String jsonString = chart.getJson().toString().replace("'", "\\'");
-
-                    engine.executeScript("var globalJson = " + jsonString + ";");
-                    engine.executeScript("drawChart('" + jsonString + "');");
-                }
-            });
         } catch (SQLException e) {
             System.out.println("GraphSelectController.updateShownGraph: " + e.getMessage());
         }
-
     }
 
     private void updateGraphFromChoice(ActionEvent actionEvent) {

@@ -1,10 +1,10 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleBubbleChart;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
-import visualiser.datavisualiser.models.GoogleChart.DataTable;
-import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
@@ -62,20 +62,17 @@ public class BubbleChartPlan extends BasicGraphPlan {
     }
 
     @Override
-    public GoogleChart getChart(DataTable unprocessedData, int width, int height) {
-        GoogleChart chart = super.getChart(unprocessedData, width, height);
+    public Chart getChart(DataTable unprocessedData) {
+        String labelId = getK1().toString();
+        String xAxisId = getOrderedMandatoryAtts().get(0).attribute().toString();
+        String yAxisId = getOrderedMandatoryAtts().get(1).attribute().toString();
+        String bubbleSizeId = getOrderedMandatoryAtts().get(2).attribute().toString();
 
-        // Is colorAxis needed?
-        if (getOrderedOptionals().stream()
-                .dropWhile(opt -> opt.typeInGraph() != AttributeType.COLOUR).findFirst().isPresent()) {
-            chart.addColourAxis();
+        String colourId = null;
+        if (!getOrderedMandatoryAtts().isEmpty() && getOrderedOptionalAtts().get(0).attribute() != null) {
+            colourId = getOrderedOptionalAtts().get(0).attribute().toString();
         }
 
-        return chart;
-    }
-
-    @Override
-    public ChartType getGoogleChartType() {
-        return ChartType.BUBBLE_CHART;
+        return new GoogleBubbleChart(unprocessedData, labelId, xAxisId, yAxisId, colourId, bubbleSizeId);
     }
 }

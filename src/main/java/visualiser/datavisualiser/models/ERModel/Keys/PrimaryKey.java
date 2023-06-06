@@ -141,4 +141,9 @@ public class PrimaryKey {
 
         return Arrays.asList(thisAttributes, expToKeyAttributes);
     }
+
+    @Override
+    public String toString() {
+        return table + "." + pkName;
+    }
 }

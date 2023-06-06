@@ -1,14 +1,13 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleScatterChart;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.GoogleChart.ChartType;
-import visualiser.datavisualiser.models.GoogleChart.DataTable;
-import visualiser.datavisualiser.models.GoogleChart.GoogleChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
-import java.util.Optional;
 
 public class ScatterDiagramPlan extends BasicGraphPlan {
 
@@ -64,19 +63,17 @@ public class ScatterDiagramPlan extends BasicGraphPlan {
     }
 
     @Override
-    public GoogleChart getChart(DataTable unprocessedData, int width, int height) {
-        GoogleChart chart = super.getChart(unprocessedData, width, height);
+    public Chart getChart(DataTable unprocessedData) {
+        String labelId = getK1().toString();
+        String xAxisId = getOrderedMandatoryAtts().get(0).attribute().toString();
+        String yAxisId = getOrderedMandatoryAtts().get(1).attribute().toString();
 
-        // Are colours needed?getChart
-        Optional<GraphAttribute> optColourAtt = getOrderedOptionals().stream()
-                .dropWhile(opt -> opt.typeInGraph() != AttributeType.COLOUR || opt.attribute() == null).findFirst();
-        optColourAtt.ifPresent(graphAttribute -> chart.convertToHexColour(graphAttribute.attribute()));
+        String colourId = null;
+        if (!getOrderedMandatoryAtts().isEmpty() && getOrderedOptionalAtts().get(0).attribute() != null) {
+            colourId = getOrderedOptionalAtts().get(0).attribute().toString();
+        }
 
-        return chart;
+        return new GoogleScatterChart(unprocessedData, labelId, xAxisId, yAxisId, colourId);
     }
 
-    @Override
-    public ChartType getGoogleChartType() {
-        return ChartType.SCATTER_DIAGRAM;
-    }
 }
