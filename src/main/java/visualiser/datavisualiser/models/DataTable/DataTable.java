@@ -2,22 +2,13 @@ package visualiser.datavisualiser.models.DataTable;
 
 
 import javafx.scene.paint.Color;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
-import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
 
 import java.util.*;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
 
-public class DataTable {
+public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
-    private final List<Column> columns;
-    private final List<List<DataCell>> rows;
-
-    public DataTable(List<Column> columns, List<List<DataCell>> rows) throws IllegalArgumentException {
+    public DataTable {
         // Check each row has the correct length and type
         // TODO: needs error message
         for (List<DataCell> row : rows) {
@@ -29,47 +20,42 @@ public class DataTable {
                 DataCell rowCell = row.get(i);
                 Column column = columns.get(i);
 
-                if (!rowCell.getType().equals(column.getType())) {
+                if (!rowCell.type().equals(column.type())) {
                     throw new IllegalArgumentException();
                 }
             }
         }
 
-        this.columns = columns;
-        this.rows = rows;
-    }
-
-    public List<Column> getColumns() {
-        return columns;
-    }
-
-    public List<List<DataCell>> getRows() {
-        return rows;
     }
 
     // The list of ids must already be contained in the datatable
-    public DataTable reOrderColumns(List<String> newOrderIds) {
+    public static DataTable getWithReOrderedColumns(DataTable dataTable, List<String> newOrderIds) {
         // Remove any null values
         List<String> ids = new ArrayList<>(newOrderIds);
         ids.removeAll(Collections.singleton(null));
+        Set<String> cols = dataTable.columns.stream().map(Column::id).collect(Collectors.toSet());
 
-        if (ids.size() > columns.size()) {
+        if (!cols.containsAll(ids)) {
             // TODO: error
+            System.out.println("Tried to reorder columns with incorrect ids. columnIds: ");
+            cols.forEach(col -> System.out.print(col + " "));
+            System.out.print("newIds: ");
+            ids.forEach(id -> System.out.print(id + " "));
             return null;
         }
 
         // Create appropriately sized new arrays
         List<Column> newColumns = new ArrayList<>();
-        columns.forEach(col -> newColumns.add(null));
+        dataTable.columns.forEach(col -> newColumns.add(null));
         List<List<DataCell>> newRows = new ArrayList<>();
-        rows.forEach(row -> {
+        dataTable.rows.forEach(row -> {
             List<DataCell> newRow = new ArrayList<>();
-            columns.forEach(col -> newRow.add(null));
+            dataTable.columns.forEach(col -> newRow.add(null));
             newRows.add(newRow);
         });
 
-        for (int oldIdx = 0; oldIdx < columns.size(); oldIdx++) {
-            String oldId = columns.get(oldIdx).getId();
+        for (int oldIdx = 0; oldIdx < dataTable.columns.size(); oldIdx++) {
+            String oldId = dataTable.columns.get(oldIdx).id();
 
             if (!ids.contains(oldId)) {
                 return null;
@@ -79,9 +65,9 @@ public class DataTable {
             int newIdx = ids.indexOf(oldId);
 
             // Place into the new Index
-            newColumns.set(newIdx, columns.get(oldIdx));
-            for (int rowIdx = 0; rowIdx < rows.size(); rowIdx++) {
-                DataCell oldCell = rows.get(rowIdx).get(oldIdx);
+            newColumns.set(newIdx, dataTable.columns.get(oldIdx));
+            for (int rowIdx = 0; rowIdx < dataTable.rows.size(); rowIdx++) {
+                DataCell oldCell = dataTable.rows.get(rowIdx).get(oldIdx);
                 newRows.get(rowIdx).set(newIdx, oldCell);
             }
         }
@@ -89,8 +75,29 @@ public class DataTable {
         return new DataTable(newColumns, newRows);
     }
 
-    public List<String> convertToHexColour(String id, Color startColour, Color endColour) {
-        List<String> ids = columns.stream().map(Column::getId).toList();
+    public static DataTable getWithNewColumn(DataTable dataTable, Column column, List<DataCell> dataCells) {
+        List<Column> newColumns = new ArrayList<>(dataTable.columns);
+        List<List<DataCell>> newRows = new ArrayList<>();
+
+        newColumns.add(column);
+
+        for (int i = 0; i < dataTable.rows.size(); i++) {
+            DataCell newCell = dataCells.get(i);
+
+            if (!newCell.type().equals(column.type())) {
+                throw new IllegalArgumentException();
+            }
+
+            List<DataCell> newRow = new ArrayList<>(dataTable.rows.get(i));
+            newRow.add(newCell);
+            newRows.add(newRow);
+        }
+
+        return new DataTable(newColumns, newRows);
+    }
+
+    public List<String> getHexColoursFromId(String id, Color startColour, Color endColour) {
+        List<String> ids = columns.stream().map(Column::id).toList();
 
         if (!ids.contains(id)) {
             return null;
@@ -99,15 +106,11 @@ public class DataTable {
         int colourIdx = ids.indexOf(id);
 
         Column colourCol = columns.get(colourIdx);
-        columns.remove(colourIdx);
         List<String> colourVals = new ArrayList<>();
-        rows.forEach(row -> {
-            colourVals.add(row.get(colourIdx).getValue());
-            row.remove(colourIdx);
-        });
+        rows.forEach(row -> colourVals.add(row.get(colourIdx).value()));
 
         List<String> hexColours = null;
-        switch (colourCol.getType()) {
+        switch (colourCol.type()) {
             case BOOLEAN -> {
                 String trueColour = "#" + colorToString(startColour);
                 String falseColour = "#" + colorToString(endColour);
@@ -132,14 +135,14 @@ public class DataTable {
                 hexColours = convertFloatsToHexColors(floatList, startColour, endColour);
             }
             default -> System.out.println(
-                    "DataTable.convertToHexColour: Tried to convert unsupported type " + colourCol.getType() + " to hex colour");
+                    "DataTable.convertToHexColour: Tried to convert unsupported type " + colourCol.type() + " to hex colour");
         }
 
         return hexColours;
     }
 
-    public List<String> convertToHexColour(String id) {
-        return convertToHexColour(id, Color.YELLOW, Color.RED);
+    public List<String> getHexColoursFromId(String id) {
+        return getHexColoursFromId(id, Color.YELLOW, Color.RED);
     }
 
     private static String colorToString(Color color) {
