@@ -15,18 +15,16 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
-import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
-import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
-import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
-import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
 import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
 import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
+import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
+import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
@@ -436,27 +434,17 @@ public class DataModelController implements Initializable {
         Relation e2Rel = rm.getRelation(e2.getName());
 
         // TODO: also check for relationships which have an inclusion 1-1 relationship
-
-        List<List<PrimaryAttribute>> sharedAtts = e1Rel.findSharedPrimaryAttributes(e2Rel);
-        List<PrimaryAttribute> e1SharedAtts = sharedAtts.get(0);
-        List<PrimaryAttribute> e2SharedAtts = sharedAtts.get(1);
-
         List<Relationship> relationships = new ArrayList<>();
+
         // Check weak or binary relationship
-        // TODO: it would be better to have one binary relation for a pair of entities with a list of attributes contained in it
-        for (int i = 0; i < e1SharedAtts.size(); i++) {
-            PrimaryAttribute k1 = e1SharedAtts.get(i);
-            PrimaryAttribute k2 = e2SharedAtts.get(i);
+        BinaryRelationship br1 = rm.getBinaryRelationship(e1Rel, e2Rel);
+        if (br1 != null) {
+            relationships.add(br1);
+        }
 
-            BinaryRelationship br1 = rm.getBinaryRelationship(new InputAttribute(k1), new InputAttribute(k2));
-            if (br1 != null) {
-                relationships.add(br1);
-            }
-
-            BinaryRelationship br2 = rm.getBinaryRelationship(new InputAttribute(k2), new InputAttribute(k1));
-            if (br2 != null) {
-                relationships.add(br2);
-            }
+        BinaryRelationship br2 = rm.getBinaryRelationship(e2Rel, e1Rel);
+        if (br2 != null) {
+            relationships.add(br2);
         }
 
         // Check for n-ary relationship

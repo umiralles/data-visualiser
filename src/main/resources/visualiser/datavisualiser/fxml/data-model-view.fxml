@@ -17,7 +17,7 @@
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="scene-grid" stylesheets="@../data-vis.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="visualiser.datavisualiser.controllers.DataModelController">
     <columnConstraints>
-      <ColumnConstraints hgrow="ALWAYS" percentWidth="7.0" />
+      <ColumnConstraints hgrow="ALWAYS" percentWidth="11.0" />
       <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
         <ColumnConstraints halignment="CENTER" hgrow="NEVER" />
         <ColumnConstraints hgrow="NEVER" percentWidth="2.0" />

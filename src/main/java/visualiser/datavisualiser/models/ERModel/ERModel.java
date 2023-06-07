@@ -116,8 +116,8 @@ public class ERModel {
         return relationships;
     }
 
-    public BinaryRelationship getBinaryRelationship(InputAttribute k1, InputAttribute k2) {
-        Relationship rel = relationships.get(BinaryRelationship.generateName(k1.table(), k2.table()));
+    public BinaryRelationship getBinaryRelationship(Relation a, Relation b) {
+        Relationship rel = relationships.get(BinaryRelationship.generateName(a, b));
 
         if (rel instanceof BinaryRelationship binRel) {
             return binRel;

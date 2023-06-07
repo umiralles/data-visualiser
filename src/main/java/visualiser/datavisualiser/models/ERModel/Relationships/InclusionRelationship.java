@@ -29,6 +29,15 @@ public class InclusionRelationship extends Relationship {
         return is_a;
     }
 
+    @Override
+    public String getName() {
+        return generateName(getA(), getB());
+    }
+
+    public static String generateName(Relation a, Relation b) {
+        return a.getName() + " - " + b.getName();
+    }
+
     public String printIsA() {
         if (is_a) {
             return "IS_A";

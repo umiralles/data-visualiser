@@ -52,13 +52,13 @@ public class BinaryRelationship extends Relationship {
         return isComplete;
     }
 
-    public static String generateName(String table1, String table2) {
-        return table1 + " << " + table2;
+    public static String generateName(Relation a, Relation b) {
+        return a.getName() + " << " + b.getName();
     }
 
     @Override
     public String getName() {
-        return generateName(getA().getName(), getB().getName());
+        return generateName(getA(), getB());
     }
 
     @Override

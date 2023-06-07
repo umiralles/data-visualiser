@@ -23,6 +23,10 @@ public class NAryRelationship extends Relationship {
         return generateName(getA(), getB());
     }
 
+    public static String generateName(Relation a, Relation b) {
+        return a.getName() + " ~ " + b.getName();
+    }
+
     public String getRelationshipName() {
         return relationshipName;
     }

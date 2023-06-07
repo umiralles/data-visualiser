@@ -22,13 +22,7 @@ public abstract class Relationship {
         return b;
     }
 
-    public String getName() {
-        return generateName(a, b);
-    }
-
-    public static String generateName(Relation a, Relation b) {
-        return a.getName() + " < " + b.getName();
-    }
+    public abstract String getName();
 
     @Override
     public int hashCode() {
