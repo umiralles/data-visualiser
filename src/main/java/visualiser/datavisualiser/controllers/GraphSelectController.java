@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -51,6 +52,12 @@ public class GraphSelectController implements Initializable {
     @FXML
     public Text graphErrorText;
 
+    @FXML
+    public TextField limitSet1TextField;
+
+    @FXML
+    public TextField limitSet2TextField;
+
     // Plans that are of the graph type selected
     private List<GraphPlan> chosenPlans = null;
 
@@ -69,15 +76,37 @@ public class GraphSelectController implements Initializable {
     @FXML
     public void onModelSelectButtonClick() {
         User user = ViewUtils.receiveData();
-//        user.setGraphDetector(null);
-//        user.setVisSchemaPattern(null);
-//        user.setRelationship(null);
-//        ViewUtils.sendData(user);
-//        ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
+        user.setGraphDetector(null);
+        user.setVisSchemaPattern(null);
+        user.setRelationship(null);
+        ViewUtils.sendData(user);
+        ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
 
-        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Bubble Chart");
+//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Bubble Chart");
+//
+//        updateShownGraph(user.getERModel(), user.getGraphDetector(), pls.stream().findFirst().get());
+    }
 
-        updateShownGraph(user.getERModel(), user.getGraphDetector(), pls.stream().findFirst().get());
+    @FXML
+    public void onLimitSetButtonClick() {
+        User user = ViewUtils.receiveData();
+
+        if (limitSet1TextField.getText().isEmpty()) {
+            return;
+        }
+
+        int lim1 = Integer.parseInt(limitSet1TextField.getText());
+        user.getGraphDetector().setLim1(lim1);
+
+        if (limitSet2TextField.getText().isEmpty()) {
+            updateShownGraph(user.getERModel(), user.getGraphDetector(), chosenPlan);
+            return;
+        }
+
+        int lim2 = Integer.parseInt(limitSet2TextField.getText());
+        user.getGraphDetector().setLim2(lim2);
+
+        updateShownGraph(user.getERModel(), user.getGraphDetector(), chosenPlan);
     }
 
     @Override
@@ -231,7 +260,7 @@ public class GraphSelectController implements Initializable {
                 return;
             }
 
-            chart.setSize(690, 415);
+            chart.setSize(690, 400);
 //            chart.testChart();
             chart.showChart(graphWebView);
 

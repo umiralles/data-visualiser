@@ -182,16 +182,16 @@ public class ERModel {
             q.append(schemaPattern).append('.').append(attsList.get(0).getTable());
 
         } else if (rel instanceof BinaryRelationship binRel) {
-            q.append(schemaPattern).append('.').append(binRel.getA()).append('\n');
+            q.append(schemaPattern).append('.').append(binRel.getA().getName()).append('\n');
             q.append(getInnerJoinQuery(binRel.getB().getName(), binRel.getX1s(), binRel.getX2s()));
 
         } else if (rel instanceof NAryRelationship nAryRel) {
-            q.append(schemaPattern).append('.').append(nAryRel.getA()).append('\n');
+            q.append(schemaPattern).append('.').append(nAryRel.getA().getName()).append('\n');
             Relation relationshipRel = nAryRel.getRelationshipRelation();
             List<ArrayList<Attribute>> aToRels = nAryRel.getA().findAttsExportedTo(relationshipRel);
             List<ArrayList<Attribute>> bToRels = nAryRel.getB().findAttsExportedTo(relationshipRel);
 
-            q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1)));
+            q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1))).append('\n');
             q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
         }
 

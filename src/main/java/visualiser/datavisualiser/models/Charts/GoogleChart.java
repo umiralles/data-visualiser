@@ -10,14 +10,12 @@ import visualiser.datavisualiser.models.DataTable.Column;
 import visualiser.datavisualiser.models.DataTable.DataCell;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.DataTable.DataType;
-import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class GoogleChart implements Chart {
     private final static String DEFAULT_DIV = "google_chart_div";
@@ -35,7 +33,7 @@ public abstract class GoogleChart implements Chart {
     }
 
     protected GoogleChart(String divName, DataTable dataTable, List<String> newDataTableOrderIds, JSONObject options) {
-        this(divName, dataTable.reOrderColumns(newDataTableOrderIds), options);
+        this(divName, DataTable.getWithReOrderedColumns(dataTable, newDataTableOrderIds), options);
     }
 
     protected GoogleChart(String divName, DataTable dataTable, List<String> newDataTableOrderIds) {
@@ -69,8 +67,8 @@ public abstract class GoogleChart implements Chart {
     }
 
     private JSONObject generateTableJSON(DataTable dataTable) {
-        List<Column> columns = dataTable.getColumns();
-        List<List<DataCell>> rows = dataTable.getRows();
+        List<Column> columns = dataTable.columns();
+        List<List<DataCell>> rows = dataTable.rows();
 
         JSONArray columnsJson = new JSONArray();
 
@@ -106,11 +104,12 @@ public abstract class GoogleChart implements Chart {
     }
 
     private JSONObject generateColumnJSON(Column column) {
-        DataType type = column.getType();
-        String id = column.getId();
-        String label = column.getLabel();
-        String pattern = column.getPattern();
-        JSONObject properties = column.getProperties();
+        DataType type = column.type();
+        String id = column.id();
+        String label = column.label();
+        String role = column.role();
+        String pattern = column.pattern();
+        JSONObject properties = column.properties();
 
         JSONObject columnJson = new JSONObject().put("type", GoogleDataType.getNameFromDataType(type));
 
@@ -120,6 +119,10 @@ public abstract class GoogleChart implements Chart {
 
         if (label != null && !label.isBlank()) {
             columnJson.put("label", label);
+        }
+
+        if (role != null && !role.isBlank()) {
+            columnJson.put("role", role);
         }
 
         if (pattern != null && !pattern.isBlank()) {
@@ -134,10 +137,10 @@ public abstract class GoogleChart implements Chart {
     }
 
     private JSONObject generateCellJSON(DataCell cell) {
-        DataType type = cell.getType();
-        String value = cell.getValue();
-        String valueFormat = cell.getValueFormat();
-        JSONObject properties = cell.getProperties();
+        DataType type = cell.type();
+        String value = cell.value();
+        String valueFormat = cell.valueFormat();
+        JSONObject properties = cell.properties();
 
         if (value == null || value.isBlank() || value.equals("null")) {
             return null;
@@ -187,30 +190,29 @@ public abstract class GoogleChart implements Chart {
     }
 
     protected boolean reOrderData(List<String> newIdsOrder) {
-        DataTable newDataTable = dataTable.reOrderColumns(newIdsOrder);
+        DataTable newDataTable = DataTable.getWithReOrderedColumns(dataTable, newIdsOrder);
 
         if (newDataTable != null) {
-            this.dataTable = dataTable.reOrderColumns(newIdsOrder);
+            this.dataTable = DataTable.getWithReOrderedColumns(dataTable, newIdsOrder);
             return true;
         }
 
         return false;
     }
 
+    protected void addColumn(Column newCol, List<DataCell> newColVals) {
+        this.dataTable = DataTable.getWithNewColumn(dataTable, newCol, newColVals);
+    }
+
     // Adds a new column where every value is the value of 'constant' and the column id is 'newColId'
     protected void addConstantColumn(String newColId, int constant) {
-        List<Column> newCols = new ArrayList<>(dataTable.getColumns());
-        List<List<DataCell>> newRows = new ArrayList<>();
-        dataTable.getRows().forEach(row -> newRows.add(new ArrayList<>(row)));
+        Column newCol = new Column(DataType.INT, newColId);
+        String newVal = String.valueOf(constant);
+        List<DataCell> newColVals =
+                Stream.generate(() -> new DataCell(newVal, DataType.INT))
+                        .limit(dataTable.rows().size()).toList();
 
-        newCols.add(new Column(DataType.INT, newColId));
-
-        String value = String.valueOf(constant);
-        for (List<DataCell> row : newRows) {
-            row.add(new DataCell(value, DataType.INT));
-        }
-
-        this.dataTable = new DataTable(newCols, newRows);
+        this.dataTable = DataTable.getWithNewColumn(dataTable, newCol, newColVals);
     }
 
     protected void addOption(String key, Object option) {
@@ -238,18 +240,61 @@ public abstract class GoogleChart implements Chart {
         addColourAxis("yellow", "red");
     }
 
-    protected void convertToHexColour(Attribute attribute, Color startColour, Color endColour) {
-        List<String> hexColours = dataTable.convertToHexColour(attribute.toString(), startColour, endColour);
+    protected void hideColourAxis() {
+        options.put("colorAxis",
+                new JSONObject().put("legend",
+                        new JSONObject().put("position", "none")));
+    }
+
+    // DOES NOT REMOVE THE CHOSEN COLUMN FROM THE DATATABLE
+    protected void addColorsOption(String colourId, Color startColour, Color endColour) {
+        List<String> hexColours = dataTable.getHexColoursFromId(colourId, startColour, endColour);
+        if (hexColours == null) {
+            // TODO: error
+            System.out.println("Tried to add colours option to " + colourId);
+            return;
+        }
+
         options.put("colors", hexColours.toArray(new String[0]));
     }
 
-    protected void convertToHexColour(Attribute attribute) {
-        convertToHexColour(attribute, Color.YELLOW, Color.RED);
+    protected void addColorsOption(String colourId) {
+        addColorsOption(colourId, Color.YELLOW, Color.RED);
+    }
+
+    protected void convertToColourStyleColumn(String colourId, Color startColour, Color endColour) {
+        List<String> hexColours = dataTable.getHexColoursFromId(colourId, startColour, endColour);
+        if (hexColours == null) {
+            // TODO: error
+            System.out.println("Tried to convert " + colourId + " to colour style column");
+            return;
+        }
+
+        List<String> currOrder = dataTable.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
+        currOrder.remove(colourId);
+        DataTable reOrdered = DataTable.getWithReOrderedColumns(dataTable, currOrder);
+        if (reOrdered == null) {
+            // TODO: error
+            System.out.println("Tried to reorder while converting " + colourId + " to colour style column");
+            return;
+        }
+
+        List<DataCell> styleColumn = hexColours.stream().map(hex -> new DataCell("color: " + hex, DataType.STRING)).toList();
+
+        this.dataTable = DataTable.getWithNewColumn(reOrdered, getStyleColumn("style"), styleColumn);
+    }
+
+    protected void convertToColourStyleColumn(String colourId) {
+        convertToColourStyleColumn(colourId, Color.YELLOW, Color.RED);
     }
 
     protected void addSizeAxis(int maxSize, int minSize) {
         options.put("sizeAxis", new JSONObject()
                 .put("maxSize", maxSize)
                 .put("minSize", minSize));
+    }
+
+    protected static Column getStyleColumn(String id) {
+        return new Column(DataType.STRING, id, id, "style");
     }
 }

@@ -2,6 +2,9 @@ package visualiser.datavisualiser.models.DataTable;
 
 
 import javafx.scene.paint.Color;
+import visualiser.datavisualiser.models.ERModel.ERModel;
+import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,10 +60,6 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         for (int oldIdx = 0; oldIdx < dataTable.columns.size(); oldIdx++) {
             String oldId = dataTable.columns.get(oldIdx).id();
 
-            if (!ids.contains(oldId)) {
-                return null;
-            }
-
             // Find new placement of the old attribute
             int newIdx = ids.indexOf(oldId);
 
@@ -75,14 +74,14 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         return new DataTable(newColumns, newRows);
     }
 
-    public static DataTable getWithNewColumn(DataTable dataTable, Column column, List<DataCell> dataCells) {
+    public static DataTable getWithNewColumn(DataTable dataTable, Column column, List<DataCell> columnVals) {
         List<Column> newColumns = new ArrayList<>(dataTable.columns);
         List<List<DataCell>> newRows = new ArrayList<>();
 
         newColumns.add(column);
 
         for (int i = 0; i < dataTable.rows.size(); i++) {
-            DataCell newCell = dataCells.get(i);
+            DataCell newCell = columnVals.get(i);
 
             if (!newCell.type().equals(column.type())) {
                 throw new IllegalArgumentException();
@@ -94,6 +93,129 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         }
 
         return new DataTable(newColumns, newRows);
+    }
+
+    public static DataTable getWithLimit(DataTable dataTable, ERModel rm, Relationship rel, String k1Id, int k1Limit, String k2Id, int k2Limit) {
+        if (k1Limit < 0) {
+            // No limit (k2 should not be limited without also limiting k1)
+            return dataTable;
+        }
+
+        // Just k1 Limit
+        if (k2Id == null || k2Limit < 0 || rel == null) {
+            if (dataTable.rows.size() < k1Limit) {
+                // Already under limit
+                return dataTable;
+            }
+
+            Optional<Column> k1Col = dataTable.columns.stream().dropWhile(col -> col.id().equals(k1Id)).findFirst();
+            if (k1Col.isEmpty()) {
+                // error
+                System.out.println("Tried to limit with incorrect ids: " + k1Id);
+                return null;
+            }
+
+            int k1Idx = dataTable.columns.indexOf(k1Col.get());
+            Set<String> k1Vals = new HashSet<>();
+            for (List<DataCell> row : dataTable.rows) {
+                k1Vals.add(row.get(k1Idx).value());
+            }
+
+            if (k1Vals.size() < k1Limit) {
+                // Already under limit
+                return dataTable;
+            }
+
+            Set<String> allowedK1s = new HashSet<>(k1Vals.stream().toList().subList(0, k1Limit));
+            List<List<DataCell>> newRows = new ArrayList<>();
+            for (List<DataCell> oldRow : dataTable.rows) {
+                if (allowedK1s.contains(oldRow.get(k1Idx).value())) {
+                    newRows.add(new ArrayList<>(oldRow));
+                }
+            }
+
+            return new DataTable(dataTable.columns, newRows);
+        }
+
+        // Find indexes
+        int k1Idx = -1;
+        int k2Idx = -1;
+        for (int i  = 0; i < dataTable.columns.size(); i++) {
+            if (dataTable.columns.get(i).id().equals(k1Id)) {
+                k1Idx = i;
+            } else if (dataTable.columns.get(i).id().equals(k2Id)) {
+                k2Idx = i;
+            }
+        }
+
+        if (k1Idx == -1 || k2Idx == -1) {
+            // error
+            System.out.println("Tried to limit with incorrect ids: " + k1Id + " " + k2Id);
+            return null;
+        }
+
+        // Collect values
+        Map<String, Set<String>> k1ToK2s = new HashMap<>();
+        Set<String> allK2Vals = new HashSet<>();
+        for (List<DataCell> row : dataTable.rows) {
+            String k1Val = row.get(k1Idx).value();
+            String k2Val = row.get(k2Idx).value();
+
+            if (!k1ToK2s.containsKey(k1Val)) {
+                k1ToK2s.put(k1Val, new HashSet<>());
+            }
+
+            k1ToK2s.get(k1Val).add(k2Val);
+            allK2Vals.add(k2Val);
+        }
+
+        // Find which rows to keep
+        Set<String> k1sToKeep = k1ToK2s.keySet();
+        if (k1ToK2s.keySet().size() >= k1Limit) {
+            k1sToKeep = new HashSet<>(k1ToK2s.keySet().stream().toList().subList(0, k1Limit));
+        }
+
+        List<List<DataCell>> newRows = new ArrayList<>();
+        if ((rel instanceof BinaryRelationship) && !((BinaryRelationship) rel).isWeakRelationship(rm)) {
+            // OneMany relationship
+            Map<String, Set<String>> k1ToK2sToKeep = new HashMap<>();
+            for (String k1 : k1sToKeep) {
+                Set<String> k2sSet = k1ToK2s.get(k1);
+                if (k2sSet.size() > k2Limit) {
+                    k2sSet =new HashSet<>(k2sSet.stream().toList().subList(0, k2Limit));
+                }
+
+                k1ToK2sToKeep.put(k1, k2sSet);
+            }
+
+            for (List<DataCell> row : dataTable.rows) {
+                String rowK1 = row.get(k1Idx).value();
+                String rowK2 = row.get(k2Idx).value();
+
+                if (k1ToK2sToKeep.containsKey(rowK1)
+                        && k1ToK2sToKeep.get(rowK1).contains(rowK2)) {
+                    newRows.add(new ArrayList<>(row));
+                }
+            }
+
+        } else {
+            // All other relationships
+            Set<String> k2sToKeep = allK2Vals;
+            if (k2sToKeep.size() >= k2Limit) {
+                k2sToKeep = new HashSet<>(allK2Vals.stream().toList().subList(0, k2Limit));
+            }
+
+            for (List<DataCell> row : dataTable.rows) {
+                String rowK1 = row.get(k1Idx).value();
+                String rowK2 = row.get(k2Idx).value();
+
+                if (k1sToKeep.contains(rowK1) && k2sToKeep.contains(rowK2)) {
+                    newRows.add(new ArrayList<>(row));
+                }
+            }
+        }
+
+        return new DataTable(dataTable.columns, newRows);
     }
 
     public List<String> getHexColoursFromId(String id, Color startColour, Color endColour) {

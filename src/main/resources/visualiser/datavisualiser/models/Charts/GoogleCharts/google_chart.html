@@ -9,7 +9,7 @@
     <script type="text/javascript">
 
       // Load the Visualization API and the corechart package.
-      google.charts.load('current', {'packages':['corechart']});
+      google.charts.load('current', {'packages':['corechart', 'sankey']});
 
       // Set a callback to run when the Google Visualization API is loaded.
       google.charts.setOnLoadCallback(drawOriginalChart);
@@ -58,6 +58,9 @@
             break;
           case 'BubbleChart':
             chart = new google.visualization.BubbleChart(document.getElementById("chart_div"));
+            break;
+          case 'Sankey':
+            chart = new google.visualization.Sankey(document.getElementById('chart_div'));
             break;
           default:
             // Do nothing

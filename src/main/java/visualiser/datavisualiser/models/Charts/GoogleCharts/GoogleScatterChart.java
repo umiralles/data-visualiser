@@ -20,6 +20,7 @@ public class GoogleScatterChart extends GoogleChart {
             addColourAxis();
         } else {
             reOrderData(List.of(labelId, xAxisId, yAxisId));
+            hideColourAxis();
         }
 
         addTitle("Scatter Chart");

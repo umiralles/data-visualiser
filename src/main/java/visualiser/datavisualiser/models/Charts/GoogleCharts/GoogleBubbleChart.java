@@ -22,12 +22,14 @@ public class GoogleBubbleChart extends GoogleChart {
                 throw new IllegalArgumentException("GoogleBubbleChart: Ids were not correct (one of " + labelId
                         + ", " + xAxisId + ", " + yAxisId + ", " + bubbleSizeId);
             }
+            hideColourAxis();
 
         } else if (colourId == null) {
             if (!reOrderData(List.of(labelId, xAxisId, yAxisId))) {
                 throw new IllegalArgumentException("GoogleBubbleChart: Ids were not correct (one of " + labelId
                         + ", " + xAxisId + ", " + yAxisId);
             }
+            hideColourAxis();
 
         } else if (bubbleSizeId == null) {
             if (!reOrderData(List.of(labelId, xAxisId, yAxisId, colourId))) {

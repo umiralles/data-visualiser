@@ -351,10 +351,10 @@ public class DataModelController implements Initializable {
     }
 
     private void addRelationToAttributesVBox(Relation rel) {
-        rel.getPrimaryKeySet().forEach(att -> {
-            addAttributeToVBox(att);
-            currAtts.put(getAttributeChoiceName(att), att);
-        });
+//        rel.getPrimaryKeySet().forEach(att -> {
+//            addAttributeToVBox(att);
+//            currAtts.put(getAttributeChoiceName(att), att);
+//        });
         rel.getOtherAttributes().forEach(att -> {
             addAttributeToVBox(att);
             currAtts.put(getAttributeChoiceName(att), att);
@@ -404,11 +404,7 @@ public class DataModelController implements Initializable {
         for (Relationship rel : relationships) {
             if (rel instanceof BinaryRelationship) {
                 // Check for weak relationship
-                if ((e1 instanceof WeakEntityType
-                        && ((WeakEntityType) e1).getOwnerName().equals(e2.getName()))
-                        || (e2 instanceof WeakEntityType
-                        && ((WeakEntityType) e2).getOwnerName().equals(e1.getName()))) {
-                    // A is E1, B is E2
+                if (((BinaryRelationship) rel).isWeakRelationship(rm)) {
                     visSchemaChoice.getItems()
                             .add(getVisSchemaChoiceName(VisSchemaPattern.WEAK_ENTITY, rel.getName()));
 

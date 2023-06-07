@@ -24,19 +24,32 @@ public class GraphDetector {
 
     // used for generating the datatable
     private final Relationship relationship;
-    private final Set<PrimaryKey> primaryKeys;
+    private final List<PrimaryKey> primaryKeys;
     private final Set<Attribute> attributes;
     // map from graph type name -> possible graph plans
     private final Map<String, Set<GraphPlan>> plans;
 
+    // Should always be either null or all data for all possible attributes
     private DataTable data = null;
+    // Limits K1
+    private int lim1 = -1;
+    // Limits K2, Not used for basic entity plans
+    private int lim2 = -1;
 
-    private GraphDetector(Relationship relationship, Set<PrimaryKey> primaryKeys, Set<Attribute> attributes,
+    private GraphDetector(Relationship relationship, List<PrimaryKey> primaryKeys, Set<Attribute> attributes,
                           Map<String, Set<GraphPlan>> plans) {
         this.relationship = relationship;
         this.primaryKeys = primaryKeys;
         this.attributes = attributes;
         this.plans = plans;
+    }
+
+    public void setLim1(int lim1) {
+        this.lim1 = lim1;
+    }
+
+    public void setLim2(int lim2) {
+        this.lim2 = lim2;
     }
 
     // kInput: must be a key attribute of the entity
@@ -106,7 +119,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(null, Set.of(eRel.getPrimaryKey()), new HashSet<>(as), plans);
+        return new GraphDetector(null, List.of(eRel.getPrimaryKey()), new HashSet<>(as), plans);
     }
 
     public static GraphDetector generateWeakPlans(BinaryRelationship rel, List<Attribute> as) {
@@ -150,7 +163,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
                 new HashSet<>(as), plans);
     }
 
@@ -194,7 +207,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
                 new HashSet<>(as), plans);
     }
 
@@ -239,7 +252,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, Set.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
+        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
                 new HashSet<>(as), plans);
     }
 
@@ -248,18 +261,21 @@ public class GraphDetector {
     }
 
     public DataTable getData(ERModel rm) throws SQLException {
-        if (data != null) {
-            return data;
+        if (data == null) {
+            if (attributes.isEmpty() || primaryKeys.isEmpty()) {
+                // TODO: error
+                return null;
+            }
+
+            // make a datatable based on the attributes
+            this.data = rm.getDataTableWithAttributes(relationship, new HashSet<>(primaryKeys), attributes);
         }
 
-        if (attributes.isEmpty()) {
-            // TODO: error
-            return null;
+        if (primaryKeys.size() == 1) {
+            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, null, -1);
         }
 
-        // make a datatable based on the attributes
-        this.data = rm.getDataTableWithAttributes(relationship, primaryKeys, attributes);
-
-        return data;
+        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
+                                        primaryKeys.get(1).toString(), lim2);
     }
 }

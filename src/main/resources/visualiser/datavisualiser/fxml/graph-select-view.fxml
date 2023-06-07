@@ -5,6 +5,7 @@
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -31,6 +32,7 @@
       <RowConstraints percentHeight="3.0" vgrow="NEVER" />
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
         <RowConstraints percentHeight="3.0" vgrow="NEVER" />
+      <RowConstraints valignment="CENTER" vgrow="NEVER" />
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
       <RowConstraints valignment="CENTER" vgrow="NEVER" />
       <RowConstraints vgrow="ALWAYS" />
@@ -86,7 +88,7 @@
             <Insets bottom="10.0" />
          </GridPane.margin>
       </ScrollPane>
-      <HBox GridPane.columnIndex="6" GridPane.rowIndex="5">
+      <HBox GridPane.columnIndex="6" GridPane.rowIndex="6">
          <children>
             <Region HBox.hgrow="ALWAYS" />
             <Button mnemonicParsing="false" onAction="#onModelSelectButtonClick" text="Model Select">
@@ -106,5 +108,28 @@
             <Insets left="10.0" />
          </GridPane.margin>
       </Text>
+      <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="6" GridPane.rowIndex="5">
+         <GridPane.margin>
+            <Insets bottom="10.0" right="40.0" />
+         </GridPane.margin>
+         <children>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Manual (Random) Limit:" textAlignment="RIGHT" wrappingWidth="120.0">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin>
+            </Text>
+            <TextField fx:id="limitSet1TextField" prefWidth="40.0" promptText="k1...">
+               <HBox.margin>
+                  <Insets right="5.0" />
+               </HBox.margin>
+            </TextField>
+            <TextField fx:id="limitSet2TextField" prefWidth="40.0" promptText="k2...">
+               <HBox.margin>
+                  <Insets right="10.0" />
+               </HBox.margin>
+            </TextField>
+            <Button mnemonicParsing="false" onAction="#onLimitSetButtonClick" text="Set" />
+         </children>
+      </HBox>
    </children>
 </GridPane>
