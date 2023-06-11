@@ -36,24 +36,30 @@ public abstract class GraphPlan {
                                                                                   List<AttributeType> mandatories,
                                                                                   List<AttributeType> optionals) {
         int attSize = atts.size();
-        // e.g. returning [[0,1],[0]] means that the 0th mandatory type for the graph matches the 0th and 1st attribute
-        //                                   and the 1st mandatory type for the graph matches the 0th attribute
-        List<List<Integer>> possMandatories = findMatchingMandatoryTypes(mandatories, atts);
-        if (possMandatories.isEmpty()) {
-            return Collections.emptyList();
-        }
-
         int numOptionals = attSize - mandatories.size();
         if (optionals.size() < numOptionals) {
             // There are more optionals needed than the graph type allows
             return Collections.emptyList();
         }
 
-        // e.g. for possOrder [[1, 0]] this means that the only possible combination would be to have the
-        //          0th mandatory type be the 1st attribute
-        //          1st mandatory type be the 0th attribute
-        //  All orders are of size mandatories.size()
-        List<List<Integer>> possMandOrders = findPossibleOrdersOfAttributes(possMandatories, false);
+        List<List<Integer>> possMandOrders = new ArrayList<>();
+        possMandOrders.add(Collections.emptyList());
+
+        if (!mandatories.isEmpty()) {
+            // e.g. returning [[0,1],[0]] means that the 0th mandatory type for the graph matches the 0th and 1st attribute
+            //                                   and the 1st mandatory type for the graph matches the 0th attribute
+            List<List<Integer>> possMandatories = findMatchingMandatoryTypes(mandatories, atts);
+            if (possMandatories.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // e.g. for possOrder [[1, 0]] this means that the only possible combination would be to have the
+            //          0th mandatory type be the 1st attribute
+            //          1st mandatory type be the 0th attribute
+            //  All orders are of size mandatories.size()
+            possMandOrders = findPossibleOrdersOfAttributes(possMandatories, false);
+        }
+
         if (possMandOrders.size() == 0) {
             return Collections.emptyList();
         }

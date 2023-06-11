@@ -1,5 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleOrgChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
@@ -75,5 +78,15 @@ public class HierarchyTreePlan extends OneManyGraphPlan {
     @Override
     public List<AttributeType> getOptionals() {
         return optionals;
+    }
+
+    @Override
+    public Chart getChart(DataTable dataTable) {
+        String colourId = null;
+        if (!getOrderedOptionals().isEmpty() && getOrderedOptionals().get(0).attribute() != null) {
+            colourId = getOrderedOptionals().get(0).attribute().toString();
+        }
+
+        return new GoogleOrgChart(dataTable, getK1().toString(), getK2().toString(), colourId);
     }
 }

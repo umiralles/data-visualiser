@@ -7,6 +7,7 @@ import visualiser.datavisualiser.models.ERModel.InclusionDependency;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,6 +32,16 @@ public class BinaryRelationship extends Relationship {
                 ids.get(0).getB(), ids.stream().map(InclusionDependency::getX2).toList(),
                 ids.stream().allMatch(InclusionDependency::isCovered));
         // TODO: All ids should be for the same relations, ids must contain at least one item
+    }
+
+    public BinaryRelationship(BinaryRelationship rel, InclusionDependency id) {
+        super(rel.getA(), rel.getB());
+
+        this.x1s = new ArrayList<>(rel.x1s);
+        this.x1s.add(id.getX1());
+        this.x2s = new ArrayList<>(rel.x2s);
+        this.x1s.add(id.getX2());
+        this.isComplete = rel.isComplete;
     }
 
     public boolean isWeakRelationship(ERModel rm) {

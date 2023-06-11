@@ -298,11 +298,16 @@ public class DataModelController implements Initializable {
             }
 
             /* Add appropriate attributes to addAttributes ChoiceBox */
-            // TODO: also add inclusion relationship attributes
-            addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
-
-            if (currVisPattern != VisSchemaPattern.BASIC_ENTITY) {
-                addRelationToAttributesVBox(rm.getRelation(selectedE2.getName()));
+            // TODO: also add inclusion relationship attributes?
+            if (currVisPattern == VisSchemaPattern.BASIC_ENTITY) {
+                addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
+            } else if (currVisPattern == VisSchemaPattern.ONE_MANY_REL
+                    || currVisPattern == VisSchemaPattern.WEAK_ENTITY) {
+                // Add attributes for child relation (A)
+                addRelationToAttributesVBox(currRelationship.getA());
+            } else {
+                // Many Many or Reflexive
+                addRelationToAttributesVBox(((NAryRelationship) currRelationship).getRelationshipRelation());
             }
 
             addAttributesVBox.getChildren().remove(attributeHBoxTemplate);
@@ -349,10 +354,6 @@ public class DataModelController implements Initializable {
     }
 
     private void addRelationToAttributesVBox(Relation rel) {
-//        rel.getPrimaryKeySet().forEach(att -> {
-//            addAttributeToVBox(att);
-//            currAtts.put(getAttributeChoiceName(att), att);
-//        });
         rel.getOtherAttributes().forEach(att -> {
             addAttributeToVBox(att);
             currAtts.put(getAttributeChoiceName(att), att);

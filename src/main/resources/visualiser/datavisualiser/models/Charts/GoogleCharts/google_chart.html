@@ -9,7 +9,8 @@
     <script type="text/javascript">
 
       // Load the Visualization API and the corechart package.
-      google.charts.load('current', {'packages':['corechart', 'sankey']});
+      google.charts.load('current', {packages:['corechart', 'sankey', 'treemap', 'orgchart', 'geochart'], 
+                        mapsApiKey: 'AIzaSyDojJY4Hkoxg5KdP7BZXwnn4J98a8qM7jk'});
 
       // Set a callback to run when the Google Visualization API is loaded.
       google.charts.setOnLoadCallback(drawOriginalChart);
@@ -61,6 +62,18 @@
             break;
           case 'Sankey':
             chart = new google.visualization.Sankey(document.getElementById('chart_div'));
+            break;
+          case 'TreeMap':
+            chart = new google.visualization.TreeMap(document.getElementById('chart_div'));
+            break;
+          case 'OrgChart':
+            chart = new google.visualization.OrgChart(document.getElementById('chart_div'));
+            break;
+          case 'LineChart':
+            chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+            break;
+          case 'GeoChart':
+            chart = new google.visualization.GeoChart(document.getElementById('chart_div'));
             break;
           default:
             // Do nothing

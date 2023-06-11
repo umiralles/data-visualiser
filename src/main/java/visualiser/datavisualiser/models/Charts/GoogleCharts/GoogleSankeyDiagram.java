@@ -7,8 +7,8 @@ import java.util.List;
 
 public class GoogleSankeyDiagram extends GoogleChart {
 
-    public GoogleSankeyDiagram(DataTable dataTable, String sourceId, String destinationId,
-                               String valueId, String colourId) {
+    public GoogleSankeyDiagram(DataTable dataTable, String sourceId, String destinationId, String valueId,
+                               String colourId) {
         super(dataTable);
 
         if (colourId != null) {
@@ -17,10 +17,11 @@ public class GoogleSankeyDiagram extends GoogleChart {
         } else {
             reOrderData(List.of(sourceId, destinationId, valueId));
         }
+
+        addTitle("Sankey Diagram");
     }
 
-    public GoogleSankeyDiagram(DataTable dataTable, String sourceId, String destinationId,
-                               String valueId) {
+    public GoogleSankeyDiagram(DataTable dataTable, String sourceId, String destinationId, String valueId) {
         this(dataTable, sourceId, destinationId, valueId, null);
     }
 

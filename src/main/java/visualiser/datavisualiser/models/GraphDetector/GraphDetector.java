@@ -123,11 +123,6 @@ public class GraphDetector {
     }
 
     public static GraphDetector generateWeakPlans(BinaryRelationship rel, List<Attribute> as) {
-        /* Checks for illegal arguments */
-        if (as.isEmpty()) {
-            throw new IllegalArgumentException("GraphDetector.generateWeakPlans: not enough attributes specified for weak relationship " + rel.getName());
-        }
-
         Reflections reflections = new Reflections(WeakGraphPlan.class.getPackageName());
         Set<Class<? extends WeakGraphPlan>> subClasses = reflections.getSubTypesOf(WeakGraphPlan.class);
 
@@ -168,11 +163,6 @@ public class GraphDetector {
     }
 
     public static GraphDetector generateOneManyPlans(BinaryRelationship rel, List<Attribute> as) {
-        /* Checks for illegal arguments */
-        if (as.isEmpty()) {
-            throw new IllegalArgumentException("GraphDetector.generateOneManyPlans: not enough attributes specified for weak relationship " + rel.getName());
-        }
-
         Reflections reflections = new Reflections(OneManyGraphPlan.class.getPackageName());
         Set<Class<? extends OneManyGraphPlan>> subClasses = reflections.getSubTypesOf(OneManyGraphPlan.class);
 
@@ -262,7 +252,7 @@ public class GraphDetector {
 
     public DataTable getData(ERModel rm) throws SQLException {
         if (data == null) {
-            if (attributes.isEmpty() || primaryKeys.isEmpty()) {
+            if (primaryKeys.isEmpty()) {
                 // TODO: error
                 return null;
             }

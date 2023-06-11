@@ -55,15 +55,15 @@ public abstract class BasicGraphPlan extends GraphPlan {
 
     public abstract List<AttributeType> getOptionals();
 
-    public PrimaryKey getK1() {
+    protected PrimaryKey getK1() {
         return k1;
     }
 
-    public List<GraphAttribute> getOrderedMandatoryAtts() {
+    protected List<GraphAttribute> getOrderedMandatoryAtts() {
         return orderedMandatoryAtts;
     }
 
-    public List<GraphAttribute> getOrderedOptionalAtts() {
+    protected List<GraphAttribute> getOrderedOptionalAtts() {
         return orderedOptionalAtts;
     }
 

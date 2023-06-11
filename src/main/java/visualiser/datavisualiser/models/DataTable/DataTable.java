@@ -49,16 +49,19 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
         // Create appropriately sized new arrays
         List<Column> newColumns = new ArrayList<>();
-        dataTable.columns.forEach(col -> newColumns.add(null));
+        ids.forEach(col -> newColumns.add(null));
         List<List<DataCell>> newRows = new ArrayList<>();
         dataTable.rows.forEach(row -> {
             List<DataCell> newRow = new ArrayList<>();
-            dataTable.columns.forEach(col -> newRow.add(null));
+            ids.forEach(col -> newRow.add(null));
             newRows.add(newRow);
         });
 
         for (int oldIdx = 0; oldIdx < dataTable.columns.size(); oldIdx++) {
             String oldId = dataTable.columns.get(oldIdx).id();
+            if (!ids.contains(oldId)) {
+                continue;
+            }
 
             // Find new placement of the old attribute
             int newIdx = ids.indexOf(oldId);
@@ -217,6 +220,22 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
         return new DataTable(dataTable.columns, newRows);
     }
+
+//    public static DataTable getWithReplacedColumnData(DataTable dataTable, String oldColumnId, Column newColumn) {
+//        List<Column> newCols = new ArrayList<>(dataTable.columns);
+//        Optional<Column> oldCol = newCols.stream().dropWhile(col -> !col.id().equals(oldColumnId)).findFirst();
+//
+//        if (oldCol.isEmpty()) {
+//            // TODO: error
+//            return null;
+//        }
+//
+//        int oldIdx = newCols.indexOf(oldCol.get());
+//        newCols.remove(oldIdx);
+//        newCols.add(oldIdx, newColumn);
+//
+//        return new DataTable(newCols, dataTable.rows);
+//    }
 
     public List<String> getHexColoursFromId(String id, Color startColour, Color endColour) {
         List<String> ids = columns.stream().map(Column::id).toList();

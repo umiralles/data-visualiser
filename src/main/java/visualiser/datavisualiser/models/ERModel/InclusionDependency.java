@@ -9,14 +9,14 @@ import java.util.HashSet;
 import java.util.Objects;
 
 public class InclusionDependency {
-    // Represents a possible inclusion dependency X1.a < X2.b
+    // Represents a possible inclusion dependency A.x1 < B.x2
     private final Relation a;
     private final Attribute x1;
     private final Relation b;
     private final Attribute x2;
 
     // There is a full covering of all values
-    private boolean is_covered = false;
+    private boolean isCovered = false;
 
     public InclusionDependency(Relation a, Attribute x1, Relation b, Attribute x2) {
         this.a = a;
@@ -42,11 +42,11 @@ public class InclusionDependency {
     }
 
     public boolean isCovered() {
-        return is_covered;
+        return isCovered;
     }
 
     public void setCovered() {
-        this.is_covered = true;
+        this.isCovered = true;
     }
 
     public String getName() {

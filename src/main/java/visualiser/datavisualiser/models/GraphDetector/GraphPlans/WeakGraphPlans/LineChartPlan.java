@@ -1,5 +1,7 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
@@ -78,5 +80,14 @@ public class LineChartPlan extends WeakGraphPlan {
     @Override
     public List<AttributeType> getOptionals() {
         return optionals;
+    }
+
+    @Override
+    public Chart getChart(DataTable dataTable) {
+        String linesId = getK1().toString();
+        String lineValsId = getK2().toString();
+        String yAxis = getOrderedMandatories().get(0).attribute().toString();
+
+        return null;
     }
 }

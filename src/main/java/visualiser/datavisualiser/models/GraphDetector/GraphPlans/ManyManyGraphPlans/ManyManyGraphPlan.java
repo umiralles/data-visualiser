@@ -28,19 +28,19 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
         return k1.getTable() + " - " + k2.getTable();
     }
 
-    public PrimaryKey getK1() {
+    protected PrimaryKey getK1() {
         return k1;
     }
 
-    public PrimaryKey getK2() {
+    protected PrimaryKey getK2() {
         return k2;
     }
 
-    public List<GraphAttribute> getOrderedMandatories() {
+    protected List<GraphAttribute> getOrderedMandatories() {
         return orderedMandatoryAtts;
     }
 
-    public List<GraphAttribute> getOrderedOptionals() {
+    protected List<GraphAttribute> getOrderedOptionals() {
         return orderedOptionalAtts;
     }
 

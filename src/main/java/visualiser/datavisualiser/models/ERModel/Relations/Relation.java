@@ -168,15 +168,15 @@ public class Relation {
     // Gets attributes that were exported to Attributes in 'attributes'
     // attExportedTo[0] = this attributes
     // attExportedTo[1] = 'attributes' attributes
-    public List<ArrayList<Attribute>> findAttsExportedTo(HashSet<? extends Attribute> attributes) {
+    public List<List<Attribute>> findAttsExportedTo(Set<? extends Attribute> attributes) {
         return primaryKey.attsExportedTo(attributes);
     }
 
     // Gets attributes that were exported to Attributes in 'expRelation'
     // attExportedTo[0] = this attributes
     // attExportedTo[1] = 'expRelation' attributes
-    public List<ArrayList<Attribute>> findAttsExportedTo(Relation expRelation) {
-        HashSet<Attribute> allExpRelationAttributes = new HashSet<>(expRelation.getPrimaryKeySet());
+    public List<List<Attribute>> findAttsExportedTo(Relation expRelation) {
+        Set<Attribute> allExpRelationAttributes = new HashSet<>(expRelation.getPrimaryKeySet());
         allExpRelationAttributes.addAll(expRelation.otherAttributes);
 
         return findAttsExportedTo(allExpRelationAttributes);
@@ -260,6 +260,21 @@ public class Relation {
         }
 
         return atts;
+    }
+
+    // Gets attributes that are shared with provided Attributes
+    // findSharedAttributes[0] = this attributes
+    // findSharedAttributes[1] = other attributes
+    public List<List<Attribute>> findSharedAttributes(Relation otherRelation) {
+        List<List<Attribute>> expFromThis = findAttsExportedTo(otherRelation);
+        List<List<Attribute>> expFromOther = otherRelation.findAttsExportedTo(this);
+
+        Set<Attribute> thisAtts = new LinkedHashSet<>(expFromThis.get(0));
+        thisAtts.addAll(expFromOther.get(1));
+        Set<Attribute> otherAtts = new LinkedHashSet<>(expFromThis.get(1));
+        otherAtts.addAll(expFromOther.get(0));
+
+        return List.of(new ArrayList<>(thisAtts), new ArrayList<>(otherAtts));
     }
 
     @Override

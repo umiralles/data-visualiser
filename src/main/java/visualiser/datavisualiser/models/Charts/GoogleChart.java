@@ -11,9 +11,7 @@ import visualiser.datavisualiser.models.DataTable.DataCell;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.DataTable.DataType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,9 +49,9 @@ public abstract class GoogleChart implements Chart {
     protected abstract String getId();
 
     public JSONObject getJson() {
-        if (chartJson != null) {
-            return chartJson;
-        }
+//        if (chartJson != null) {
+//            return chartJson;
+//        }
 
         JSONObject data = new JSONObject();
 
@@ -81,21 +79,13 @@ public abstract class GoogleChart implements Chart {
         for (List<DataCell> row : rows) {
 
             JSONArray rowJson = new JSONArray();
-            boolean nullRow = false;
             for (DataCell cell : row) {
                 JSONObject cellJson = generateCellJSON(cell);
-
-                if (cellJson == null) {
-                    nullRow = true;
-                    break;
-                }
 
                 rowJson.put(cellJson);
             }
 
-            if (!nullRow) {
-                rowsJson.put(new JSONObject().put("c", rowJson));
-            }
+            rowsJson.put(new JSONObject().put("c", rowJson));
         }
 
         return new JSONObject()
@@ -141,10 +131,6 @@ public abstract class GoogleChart implements Chart {
         String value = cell.value();
         String valueFormat = cell.valueFormat();
         JSONObject properties = cell.properties();
-
-        if (value == null || value.isBlank() || value.equals("null")) {
-            return null;
-        }
 
         JSONObject cellJson = new JSONObject();
 
@@ -215,6 +201,10 @@ public abstract class GoogleChart implements Chart {
         this.dataTable = DataTable.getWithNewColumn(dataTable, newCol, newColVals);
     }
 
+    protected void addRows(List<List<DataCell>> newRows) {
+        dataTable.rows().addAll(newRows);
+    }
+
     protected void addOption(String key, Object option) {
         options.put(key, option);
     }
@@ -281,12 +271,23 @@ public abstract class GoogleChart implements Chart {
 
         List<DataCell> styleColumn = hexColours.stream().map(hex -> new DataCell("color: " + hex, DataType.STRING)).toList();
 
-        this.dataTable = DataTable.getWithNewColumn(reOrdered, getStyleColumn("style"), styleColumn);
+        this.dataTable = DataTable.getWithNewColumn(reOrdered, generateStyleColumn("style"), styleColumn);
     }
 
     protected void convertToColourStyleColumn(String colourId) {
         convertToColourStyleColumn(colourId, Color.YELLOW, Color.RED);
     }
+
+//    protected void convertToAnnotationColumn(String annotationId) {
+//        Optional<Column> annoColOpt = dataTable.columns().stream().dropWhile(col -> !col.id().equals(annotationId)).findFirst();
+//        if (annoColOpt.isEmpty()) {
+//            return;
+//        }
+//
+//        Column oldCol = annoColOpt.get();
+//        this.dataTable = DataTable.getWithReplacedColumnData(dataTable, annotationId,
+//                new Column(oldCol.type(), oldCol.id(), oldCol.label(), "annotation", oldCol.pattern(), oldCol.properties()));
+//    }
 
     protected void addSizeAxis(int maxSize, int minSize) {
         options.put("sizeAxis", new JSONObject()
@@ -294,7 +295,26 @@ public abstract class GoogleChart implements Chart {
                 .put("minSize", minSize));
     }
 
-    protected static Column getStyleColumn(String id) {
+    protected static Column generateStyleColumn(String id) {
         return new Column(DataType.STRING, id, id, "style");
+    }
+
+    protected void removeDuplicatesInColumn(int idx) {
+        // Remove duplicates for the indexed column
+        Set<String> seenVals = new HashSet<>();
+        List<Integer> idxsToRemove = new ArrayList<>();
+        for (int i = dataTable.rows().size() -1; i >= 0; i--) {
+            String rowVal = dataTable.rows().get(i).get(idx).value();
+            if (seenVals.contains(rowVal)) {
+                idxsToRemove.add(i);
+                continue;
+            }
+
+            seenVals.add(rowVal);
+        }
+
+        for (Integer toRemove : idxsToRemove) {
+            dataTable.rows().remove((int) toRemove);
+        }
     }
 }

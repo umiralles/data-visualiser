@@ -4,7 +4,6 @@ import visualiser.datavisualiser.models.DataTable.Column;
 import visualiser.datavisualiser.models.DataTable.DataCell;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.DataTable.DataType;
-import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
 import visualiser.datavisualiser.models.ERModel.Entities.StrongEntityType;
 import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
@@ -183,13 +182,15 @@ public class ERModel {
 
         } else if (rel instanceof BinaryRelationship binRel) {
             q.append(schemaPattern).append('.').append(binRel.getA().getName()).append('\n');
-            q.append(getInnerJoinQuery(binRel.getB().getName(), binRel.getX1s(), binRel.getX2s()));
+            List<List<Attribute>> aToBs = binRel.getA().findSharedAttributes(binRel.getB());
+
+            q.append(getInnerJoinQuery(binRel.getB().getName(), aToBs.get(0), aToBs.get(1)));
 
         } else if (rel instanceof NAryRelationship nAryRel) {
             q.append(schemaPattern).append('.').append(nAryRel.getA().getName()).append('\n');
             Relation relationshipRel = nAryRel.getRelationshipRelation();
-            List<ArrayList<Attribute>> aToRels = nAryRel.getA().findAttsExportedTo(relationshipRel);
-            List<ArrayList<Attribute>> bToRels = nAryRel.getB().findAttsExportedTo(relationshipRel);
+            List<List<Attribute>> aToRels = nAryRel.getA().findSharedAttributes(relationshipRel);
+            List<List<Attribute>> bToRels = nAryRel.getB().findSharedAttributes(relationshipRel);
 
             q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1))).append('\n');
             q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
@@ -397,7 +398,7 @@ public class ERModel {
     }
 
     // DOES modify relations
-    private void setRelationsTypes(HashMap<String, Relation>  relations, ArrayList<String> entityRelations) {
+    private void setRelationsTypes(Map<String, Relation> relations, List<String> entityRelations) {
         // Detect strong entity relations
         for (Relation relation : relations.values()) {
             // If there is only one primary key attribute, it must be a strong relation
@@ -515,7 +516,7 @@ public class ERModel {
                         continue;
                     }
 
-                    List<ArrayList<Attribute>> exportedAttributes = otherRelation.findAttsExportedTo(k2);
+                    List<List<Attribute>> exportedAttributes = otherRelation.findAttsExportedTo(k2);
                     if (exportedAttributes.get(0).size() > 0) {
                         // a k2 attribute is contained in the key of 'otherRelation'
                         doesNotContainK2 = false;
@@ -620,9 +621,9 @@ public class ERModel {
                 // The key of an entity relation (strong or weak) appears as a foreign key of another relation then:
                 //      otherRelation.att < relation.att is possible
                 if (relation.isEntityRelation()) {
-                    List<ArrayList<Attribute>> expAttributes = relation.findAttsExportedTo(otherRelation);
-                    ArrayList<Attribute> relationAtts = expAttributes.get(0);
-                    ArrayList<Attribute> otherRelationAtts = expAttributes.get(1);
+                    List<List<Attribute>> expAttributes = relation.findAttsExportedTo(otherRelation);
+                    List<Attribute> relationAtts = expAttributes.get(0);
+                    List<Attribute> otherRelationAtts = expAttributes.get(1);
 
                     for (int i = 0; i < relationAtts.size(); i++) {
                         Attribute relationAtt = relationAtts.get(i);
@@ -812,14 +813,14 @@ public class ERModel {
 
             for (Relation otherRelation : relations.values()) {
                 if (relation.equals(otherRelation) ||
-                    !(relation.isEntityRelation() && otherRelation.isEntityRelation()) ||
-                    !foreignRelationNames.contains(otherRelation.getName())) {
+                        !(relation.isEntityRelation() && otherRelation.isEntityRelation()) ||
+                        !foreignRelationNames.contains(otherRelation.getName())) {
                     continue;
                 }
 
-                List<ArrayList<Attribute>> exportedAtts = otherRelation.findAttsExportedTo(relation);
-                ArrayList<Attribute> otherRelationAtts = exportedAtts.get(0);
-                ArrayList<Attribute> relationAtts = exportedAtts.get(1);
+                List<List<Attribute>> exportedAtts = otherRelation.findAttsExportedTo(relation);
+                List<Attribute> otherRelationAtts = exportedAtts.get(0);
+                List<Attribute> relationAtts = exportedAtts.get(1);
 
                 for (int i = 0; i < otherRelationAtts.size(); i++) {
                     Attribute otherAtt = otherRelationAtts.get(i);
@@ -838,8 +839,16 @@ public class ERModel {
                 continue;
             }
 
-            BinaryRelationship newBr = new BinaryRelationship(potentialBinRelations);
-            relationships.put(newBr.getName(), newBr);
+            for (InclusionDependency id : potentialBinRelations) {
+                String relName = BinaryRelationship.generateName(id.getA(), id.getB());
+
+                if (relationships.containsKey(relName)) {
+                    BinaryRelationship newRel = new BinaryRelationship((BinaryRelationship) relationships.get(relName), id);
+                    relationships.put(relName, newRel);
+                } else {
+                    relationships.put(relName, new BinaryRelationship(List.of(id)));
+                }
+            }
         }
 
         /* BINARY RELATIONSHIPS 2 */
@@ -848,9 +857,14 @@ public class ERModel {
             // TODO: should this be for both non keys and foreign non keys or just non keys? I think both
             if ((id.getA().hasNonKey(id.getX1()) || id.getA().hasNonPKForeignKey(id.getX1()))
                     && (id.getB().hasNonKey(id.getX2()) || id.getA().hasNonPKForeignKey(id.getX2()))) {
-                BinaryRelationship newBr = new BinaryRelationship(List.of(id));
+                String relName = BinaryRelationship.generateName(id.getA(), id.getB());
 
-                relationships.put(newBr.getName(), newBr);
+                if (relationships.containsKey(relName)) {
+                    BinaryRelationship newRel = new BinaryRelationship((BinaryRelationship) relationships.get(relName), id);
+                    relationships.put(relName, newRel);
+                } else {
+                    relationships.put(relName, new BinaryRelationship(List.of(id)));
+                }
             }
         }
 

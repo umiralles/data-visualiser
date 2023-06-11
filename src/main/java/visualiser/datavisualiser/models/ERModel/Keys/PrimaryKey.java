@@ -102,7 +102,7 @@ public class PrimaryKey {
 
     // sharedAttribute[0] = this attributes
     // sharedAttribute[1] = otherKey attributes
-    public List<List<Attribute>> sharedAttributes(HashSet<? extends Attribute> otherAttributes) {
+    public List<List<Attribute>> sharedAttributes(Set<? extends Attribute> otherAttributes) {
         List<Attribute> thisAttributes = new ArrayList<>();
         List<Attribute> otherKeyAttributes = new ArrayList<>();
 
@@ -120,15 +120,15 @@ public class PrimaryKey {
 
     // attExportedTo[0] = this attributes
     // attExportedTo[1] = expRelation attributes
-    public List<ArrayList<Attribute>> attsExportedTo(PrimaryKey expToKey) {
+    public List<List<Attribute>> attsExportedTo(PrimaryKey expToKey) {
         return attsExportedTo(expToKey.pAttributes);
     }
 
     // attExportedTo[0] = this attributes (PrimaryAttribute)
     // attExportedTo[1] = expRelation attributes (Attribute)
-    public List<ArrayList<Attribute>> attsExportedTo(HashSet<? extends Attribute> expToAttributes) {
-        ArrayList<Attribute> thisAttributes = new ArrayList<>();
-        ArrayList<Attribute> expToKeyAttributes = new ArrayList<>();
+    public List<List<Attribute>> attsExportedTo(Set<? extends Attribute> expToAttributes) {
+        List<Attribute> thisAttributes = new ArrayList<>();
+        List<Attribute> expToKeyAttributes = new ArrayList<>();
 
         for (PrimaryAttribute thisAtt : pAttributes) {
             for (Attribute otherAtt : expToAttributes) {

@@ -14,9 +14,7 @@ public class GoogleScatterChart extends GoogleChart {
         super(dataTable);
 
         if (colourId != null) {
-            String bubbleSizeId = "bubbleSize";
-            addConstantColumn(bubbleSizeId, BUBBLE_SIZE);
-            reOrderData(List.of(labelId, xAxisId, yAxisId, colourId, bubbleSizeId));
+            reOrderData(List.of(labelId, xAxisId, yAxisId, colourId));
             addColourAxis();
         } else {
             reOrderData(List.of(labelId, xAxisId, yAxisId));
