@@ -1,13 +1,17 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans;
 
 import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleLineChart;
+import visualiser.datavisualiser.models.DataTable.Column;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LineChartPlan extends WeakGraphPlan {
 
@@ -70,7 +74,7 @@ public class LineChartPlan extends WeakGraphPlan {
     }
 
     @Override
-    public boolean isCompleteRelationship() {return complete;}
+    public boolean mustBeComplete() {return complete;}
 
     @Override
     public List<AttributeType> getMandatories() {
@@ -84,10 +88,14 @@ public class LineChartPlan extends WeakGraphPlan {
 
     @Override
     public Chart getChart(DataTable dataTable) {
-        String linesId = getK1().toString();
-        String lineValsId = getK2().toString();
-        String yAxis = getOrderedMandatories().get(0).attribute().toString();
+        String linesId = getK1().toString(); // city
+        String lineValsId = getK2().toString(); // year // x axis
+        String yAxisId = getOrderedMandatories().get(0).attribute().toString(); // population
 
-        return null;
+        DataTable shiftedData = shiftDataViaGroups(dataTable, linesId, lineValsId, yAxisId);
+        List<String> lines = shiftedData.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
+        lines.remove(0);
+
+        return new GoogleLineChart(shiftedData, lineValsId, lines);
     }
 }

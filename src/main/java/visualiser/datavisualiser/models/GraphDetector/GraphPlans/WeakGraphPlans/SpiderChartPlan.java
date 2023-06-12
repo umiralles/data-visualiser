@@ -69,7 +69,7 @@ public class SpiderChartPlan extends WeakGraphPlan {
     }
 
     @Override
-    public boolean isCompleteRelationship() {
+    public boolean mustBeComplete() {
         return complete;
     }
 

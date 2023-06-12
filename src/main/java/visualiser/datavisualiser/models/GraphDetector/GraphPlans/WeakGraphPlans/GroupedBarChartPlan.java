@@ -1,11 +1,17 @@
 package visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans;
 
+import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleMaterialColumnChart;
+import visualiser.datavisualiser.models.DataTable.Column;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GroupedBarChartPlan extends WeakGraphPlan {
 
@@ -69,7 +75,7 @@ public class GroupedBarChartPlan extends WeakGraphPlan {
     }
 
     @Override
-    public boolean isCompleteRelationship() {
+    public boolean mustBeComplete() {
         return complete;
     }
 
@@ -81,5 +87,18 @@ public class GroupedBarChartPlan extends WeakGraphPlan {
     @Override
     public List<AttributeType> getOptionals() {
         return optionals;
+    }
+
+    @Override
+    public Chart getChart(DataTable dataTable) {
+        String groupId = getK1().toString(); // city
+        String groupTitleId = getK2().toString(); // year // x axis
+        String yAxisId = getOrderedMandatories().get(0).attribute().toString(); // population
+
+        DataTable shiftedData = shiftDataViaGroups(dataTable, groupId, groupTitleId, yAxisId);
+        List<String> groups = shiftedData.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
+        groups.remove(0);
+
+        return new GoogleMaterialColumnChart(dataTable, groupTitleId, groups);
     }
 }

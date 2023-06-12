@@ -148,9 +148,35 @@ public class ERModel {
     }
 
     public DataTable getDataTableWithAttributes(Relationship rel, Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
+        List<PrimaryKey> pksList = new ArrayList<>(pks);
+        List<List<PrimaryAttribute>> pkAtts = new ArrayList<>();
+        pksList.forEach(pk -> pkAtts.add(new ArrayList<>(pk.getPAttributes())));
+
+        // if there is a binary relationship, check if one primary key contains the other. If so, remove the
+        //  similar attributes from the larger key
+        if (rel instanceof BinaryRelationship && !rel.getA().equals(rel.getB())) {
+            // There should be two primary keys
+            List<List<PrimaryAttribute>> sharedAtts = pksList.get(0).sharedAttributes(pksList.get(1));
+            if (pkAtts.get(0).size() > pkAtts.get(1).size()) {
+                List<PrimaryAttribute> zeroSharedAtts = sharedAtts.get(0);
+                pkAtts.get(0).removeAll(zeroSharedAtts);
+            } else if (pkAtts.get(1).size() > pkAtts.get(0).size()) {
+                List<PrimaryAttribute> oneSharedAtts = sharedAtts.get(1);
+                pkAtts.get(1).removeAll(oneSharedAtts);
+            }
+        }
+
         ArrayList<Column> columns = new ArrayList<>();
-        for (PrimaryKey key : pks) {
-            columns.add(new Column(DataType.STRING, key.toString(), key.getTable()));
+        for (int i = 0; i < pksList.size(); i++) {
+            PrimaryKey key = pksList.get(i);
+            List<PrimaryAttribute> keyAtts = pkAtts.get(i);
+
+            if (keyAtts.size() == 1) {
+                DataType keyType = keyAtts.get(0).getDBType().getDataType();
+                columns.add(new Column(keyType, key.toString(), keyAtts.get(0).toString()));
+            } else {
+                columns.add(new Column(DataType.STRING, key.toString(), key.getTable()));
+            }
         }
 
         for (Attribute att : atts) {
@@ -158,9 +184,9 @@ public class ERModel {
         }
 
         Set<Attribute> queryAtts = new HashSet<>(atts);
-        pks.forEach(key -> queryAtts.addAll(key.getPAttributes()));
+        pkAtts.forEach(queryAtts::addAll);
 
-        List<List<DataCell>> rows = getRowsFromQueryAndAtts(generateQuery(rel, queryAtts), new ArrayList<>(pks), new ArrayList<>(atts));
+        List<List<DataCell>> rows = getRowsFromQueryAndAtts(generateQuery(rel, queryAtts), pkAtts, new ArrayList<>(atts));
 
         return new DataTable(columns, rows);
     }
@@ -223,7 +249,7 @@ public class ERModel {
         return q.toString();
     }
 
-    private List<List<DataCell>> getRowsFromQueryAndAtts(String query, List<PrimaryKey> pks, List<Attribute> atts) throws SQLException {
+    private List<List<DataCell>> getRowsFromQueryAndAtts(String query, List<List<PrimaryAttribute>> pks, List<Attribute> atts) throws SQLException {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(query);
 
@@ -232,19 +258,21 @@ public class ERModel {
         while(rs.next()){
             ArrayList<DataCell> row = new ArrayList<>();
 
-            for (PrimaryKey key : pks) {
-                List<PrimaryAttribute> pAtts = new ArrayList<>(key.getPAttributes());
-
+            for (List<PrimaryAttribute> pAtts : pks) {
                 // TODO: check that the rs call is right
                 String firstKeyVal = String.valueOf(rs.getObject(pAtts.get(0).getColumn()));
                 StringBuilder s = new StringBuilder(firstKeyVal);
 
-                for (int i = 1; i < key.getPAttributes().size(); i++) {
+                for (int i = 1; i < pAtts.size(); i++) {
                     String keyVal = String.valueOf(rs.getObject(pAtts.get(i).getColumn()));
                     s.append(", ").append(keyVal);
                 }
 
-                row.add(new DataCell(s.toString(), DataType.STRING));
+                if (pAtts.size() == 1) {
+                    row.add(new DataCell(s.toString(), pAtts.get(0).getDBType().getDataType()));
+                } else {
+                    row.add(new DataCell(s.toString(), DataType.STRING));
+                }
             }
 
             for (Attribute att : atts) {
@@ -640,9 +668,9 @@ public class ERModel {
                         || relation.getType() == RelationType.WEAK)
                         && otherRelation.isEntityRelation()) {
 
-                    List<List<Attribute>> sharedAttributes = otherRelation.findSharedPrimaryAttributes(relation.getPrimaryKeyAtts());
-                    List<Attribute> relationAtts = sharedAttributes.get(0);
-                    List<Attribute> otherRelationAtts = sharedAttributes.get(1);
+                    List<List<Attribute>> sharedAttributes = otherRelation.findAttsExportedTo(relation.getPrimaryKeyAtts());
+                    List<Attribute> otherRelationAtts = sharedAttributes.get(0);
+                    List<Attribute> relationAtts = sharedAttributes.get(1);
 
                     for (int i = 0; i < relationAtts.size(); i++) {
                         Attribute pKAtt = relationAtts.get(i);
@@ -693,11 +721,12 @@ public class ERModel {
 
             if (/*x1Vals.size() == 0 || */ !x1sContainedInX2s) {
                 ids.remove(id.getName());
+                continue;
             }
 
             boolean x2sContainedInX1s = x1Vals.containsAll(x2Vals);
 
-            if (x2Vals.size() == x1Vals.size() && x1sContainedInX2s && x2sContainedInX1s) {
+            if (x2Vals.size() == x1Vals.size() && x2sContainedInX1s) {
                 id.setCovered();
             }
         }
@@ -712,7 +741,8 @@ public class ERModel {
             for (InclusionDependency idB : idsCopy) {
                 // If idA is A.X < B.X and idB is B.Y < C.Y and Y is a subset of X then:
                 //      A.Y < C.Y is redundant
-                if (idA.equals(idB) || !idA.getB().equals(idB.getA())) {
+                if (!ids.containsKey(InclusionDependency.generateName(idA.getX1(), idB.getX2())) ||
+                        idA.equals(idB) || !idA.getB().equals(idB.getA())) {
                     continue;
                 }
 
@@ -826,9 +856,8 @@ public class ERModel {
                     Attribute otherAtt = otherRelationAtts.get(i);
                     Attribute relationAtt = relationAtts.get(i);
 
-                    InclusionDependency potentialBinRelation = new InclusionDependency(relation, relationAtt, otherRelation, otherAtt);
-                    if (ids.get(potentialBinRelation.getName()) != null) {
-                        potentialBinRelations.add(potentialBinRelation);
+                    if (ids.get(InclusionDependency.generateName(relationAtt, otherAtt)) != null) {
+                        potentialBinRelations.add(ids.get(InclusionDependency.generateName(relationAtt, otherAtt)));
                     }
                 }
             }
@@ -904,7 +933,7 @@ public class ERModel {
                 }
             }
 
-            List<EntityType> relPartsArr = relParts.stream().toList();
+            List<EntityType> relPartsArr = new ArrayList<>(relParts);
 
             if (relPartsArr.size() == 1) {
                 // the relationship is to itself

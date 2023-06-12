@@ -98,7 +98,7 @@ public class DataModelController implements Initializable {
         GraphDetector gd = null;
         switch (currVisPattern) {
             case BASIC_ENTITY -> gd = GraphDetector.generateBasicPlans(rm, selectedE1, getCheckedAttributes());
-            case WEAK_ENTITY -> gd = GraphDetector.generateWeakPlans((BinaryRelationship) currRelationship, getCheckedAttributes());
+            case WEAK_ENTITY -> gd = GraphDetector.generateWeakPlans(rm, (BinaryRelationship) currRelationship, getCheckedAttributes());
             case ONE_MANY_REL -> gd = GraphDetector.generateOneManyPlans((BinaryRelationship) currRelationship, getCheckedAttributes());
             case MANY_MANY_REL, REFLEXIVE -> gd = GraphDetector.generateManyManyPlans((NAryRelationship) currRelationship, getCheckedAttributes());
         }

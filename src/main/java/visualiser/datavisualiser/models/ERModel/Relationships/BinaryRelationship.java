@@ -16,15 +16,15 @@ public class BinaryRelationship extends Relationship {
     private final List<Attribute> x1s;
     private final List<Attribute> x2s;
 
-    private final boolean isComplete;
+    private final boolean isCovered;
 
     // represents a binary relationship where a is 0:1 and b is 0:N
-    public BinaryRelationship(Relation a, List<Attribute> x1s, Relation b, List<Attribute> x2s, boolean isComplete) {
+    public BinaryRelationship(Relation a, List<Attribute> x1s, Relation b, List<Attribute> x2s, boolean isCovered) {
         super(a, b);
 
         this.x1s = x1s;
         this.x2s = x2s;
-        this.isComplete = isComplete;
+        this.isCovered = isCovered;
     }
 
     public BinaryRelationship(List<InclusionDependency> ids) {
@@ -41,7 +41,7 @@ public class BinaryRelationship extends Relationship {
         this.x1s.add(id.getX1());
         this.x2s = new ArrayList<>(rel.x2s);
         this.x1s.add(id.getX2());
-        this.isComplete = rel.isComplete;
+        this.isCovered = rel.isCovered && id.isCovered();
     }
 
     public boolean isWeakRelationship(ERModel rm) {
@@ -59,8 +59,8 @@ public class BinaryRelationship extends Relationship {
         return x2s;
     }
 
-    public boolean isComplete() {
-        return isComplete;
+    public boolean isCovered() {
+        return isCovered;
     }
 
     public static String generateName(Relation a, Relation b) {

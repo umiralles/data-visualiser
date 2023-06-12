@@ -143,6 +143,15 @@ public class PrimaryKey {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof PrimaryKey eq)) {
+            return false;
+        }
+
+        return table.equals(eq.table);
+    }
+
+    @Override
     public String toString() {
         return table + "." + pkName;
     }

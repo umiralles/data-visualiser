@@ -1,6 +1,8 @@
 package visualiser.datavisualiser.models.GraphDetector;
 
 import org.reflections.Reflections;
+import visualiser.datavisualiser.models.DataTable.Column;
+import visualiser.datavisualiser.models.DataTable.DataCell;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
@@ -23,8 +25,8 @@ import java.util.*;
 public class GraphDetector {
 
     // used for generating the datatable
+    private final EntityType entity;
     private final Relationship relationship;
-    private final List<PrimaryKey> primaryKeys;
     private final Set<Attribute> attributes;
     // map from graph type name -> possible graph plans
     private final Map<String, Set<GraphPlan>> plans;
@@ -36,12 +38,33 @@ public class GraphDetector {
     // Limits K2, Not used for basic entity plans
     private int lim2 = -1;
 
-    private GraphDetector(Relationship relationship, List<PrimaryKey> primaryKeys, Set<Attribute> attributes,
-                          Map<String, Set<GraphPlan>> plans) {
+    private GraphDetector(EntityType entity, Relationship relationship, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans, DataTable data) {
+        this.entity = entity;
         this.relationship = relationship;
-        this.primaryKeys = primaryKeys;
         this.attributes = attributes;
         this.plans = plans;
+        this.data = data;
+    }
+
+    private GraphDetector(Relationship relationship, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans, DataTable data) {
+        this(null, relationship, attributes, plans, data);
+    }
+
+    private GraphDetector(Relationship relationship, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans) {
+        this(relationship, attributes, plans, null);
+    }
+
+    private GraphDetector(EntityType entity, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans, DataTable data) {
+        this(entity, null, attributes, plans, data);
+    }
+
+    private GraphDetector(EntityType entity, Set<Attribute> attributes,
+                          Map<String, Set<GraphPlan>> plans) {
+        this(entity, attributes, plans, null);
     }
 
     public void setLim1(int lim1) {
@@ -50,6 +73,37 @@ public class GraphDetector {
 
     public void setLim2(int lim2) {
         this.lim2 = lim2;
+    }
+
+    public Map<String, Set<GraphPlan>> getPlans() {
+        return plans;
+    }
+
+    public DataTable getData(ERModel rm) throws SQLException {
+        List<PrimaryKey> primaryKeys = new ArrayList<>();
+        if (entity != null) {
+            primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
+        } else if (relationship != null) {
+            primaryKeys.add(relationship.getA().getPrimaryKey());
+            primaryKeys.add(relationship.getB().getPrimaryKey());
+        }
+
+        if (data == null) {
+            if (primaryKeys.isEmpty()) {
+                // TODO: error
+                return null;
+            }
+
+            // make a datatable based on the attributes
+            this.data = loadData(rm, relationship, new HashSet<>(primaryKeys), attributes);
+        }
+
+        if (primaryKeys.size() == 1) {
+            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, null, -1);
+        }
+
+        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
+                primaryKeys.get(1).toString(), lim2);
     }
 
     // kInput: must be a key attribute of the entity
@@ -119,14 +173,16 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(null, List.of(eRel.getPrimaryKey()), new HashSet<>(as), plans);
+        return new GraphDetector(entity, new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateWeakPlans(BinaryRelationship rel, List<Attribute> as) {
+    public static GraphDetector generateWeakPlans(ERModel rm, BinaryRelationship rel, List<Attribute> as) {
         Reflections reflections = new Reflections(WeakGraphPlan.class.getPackageName());
         Set<Class<? extends WeakGraphPlan>> subClasses = reflections.getSubTypesOf(WeakGraphPlan.class);
 
         Map<String, Set<GraphPlan>> plans = new HashMap<>();
+        Boolean isComplete = null;
+        DataTable data = null;
         for (Class<? extends WeakGraphPlan> subClass : subClasses) {
             Set<GraphPlan> typePlans;
             String planName;
@@ -138,14 +194,26 @@ public class GraphDetector {
                             subClass.getName() + "has not overwritten getDummyInstance method.");
                 }
 
-                if ((dummyPlan.isCompleteRelationship() != rel.isComplete()) ||
-                        !dummyPlan.fitKTypes(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey())) {
+
+                if (!dummyPlan.fitKTypes(rel.getB().getPrimaryKey(), rel.getA().getPrimaryKey())) {
                     continue;
                 }
 
+                if (dummyPlan.mustBeComplete()) {
+                    // Check for completeness
+                    if (isComplete == null) {
+                        data = loadData(rm, null, rel, new HashSet<>(as));
+                        isComplete = GraphDetector.checkForCompleteness(data, rel);
+                    }
+
+                    if (!isComplete) {
+                        continue;
+                    }
+                }
+
                 planName = dummyPlan.getPlanName();
-                typePlans = dummyPlan.fitAttributesToPlan(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey(), as);
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                typePlans = dummyPlan.fitAttributesToPlan(rel.getB().getPrimaryKey(), rel.getA().getPrimaryKey(), as);
+            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException | SQLException e) {
                 throw new RuntimeException(e);
             }
 
@@ -158,8 +226,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
-                new HashSet<>(as), plans);
+        return new GraphDetector(rel, new HashSet<>(as), plans, data);
     }
 
     public static GraphDetector generateOneManyPlans(BinaryRelationship rel, List<Attribute> as) {
@@ -178,12 +245,12 @@ public class GraphDetector {
                             subClass.getName() + "has not overwritten getDummyInstance method.");
                 }
 
-                if (!dummyPlan.fitKTypes(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey())) {
+                if (!dummyPlan.fitKTypes(rel.getB().getPrimaryKey(), rel.getA().getPrimaryKey())) {
                     continue;
                 }
 
                 planName = dummyPlan.getPlanName();
-                typePlans = dummyPlan.fitAttributesToPlan(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey(), as);
+                typePlans = dummyPlan.fitAttributesToPlan(rel.getB().getPrimaryKey(), rel.getA().getPrimaryKey(), as);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -197,8 +264,7 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
-                new HashSet<>(as), plans);
+        return new GraphDetector(rel, new HashSet<>(as), plans);
     }
 
     public static GraphDetector generateManyManyPlans(NAryRelationship rel, List<Attribute> as) {
@@ -242,30 +308,72 @@ public class GraphDetector {
             return null;
         }
 
-        return new GraphDetector(rel, List.of(rel.getA().getPrimaryKey(), rel.getB().getPrimaryKey()),
-                new HashSet<>(as), plans);
+        return new GraphDetector(rel, new HashSet<>(as), plans);
     }
 
-    public Map<String, Set<GraphPlan>> getPlans() {
-        return plans;
-    }
+    // Data is complete if the same set of values appear for k2 for each instance of k1
+    private static boolean checkForCompleteness(DataTable data, BinaryRelationship rel) {
+        String k1Id = rel.getB().getPrimaryKey().toString();
+        String k2Id = rel.getA().getPrimaryKey().toString();
 
-    public DataTable getData(ERModel rm) throws SQLException {
-        if (data == null) {
-            if (primaryKeys.isEmpty()) {
-                // TODO: error
-                return null;
+        int k1Idx = -1;
+        int k2Idx = -1;
+        for (int i = 0; i < data.columns().size(); i++) {
+            Column col = data.columns().get(i);
+            if (col.id().equals(k1Id)) {
+                k1Idx = i;
+            } else if (col.id().equals(k2Id)) {
+                k2Idx = i;
             }
-
-            // make a datatable based on the attributes
-            this.data = rm.getDataTableWithAttributes(relationship, new HashSet<>(primaryKeys), attributes);
         }
 
-        if (primaryKeys.size() == 1) {
-            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, null, -1);
+        if (k1Idx == -1 || k2Idx == -1) {
+            throw new IllegalArgumentException("GraphDetector.checkForCompleteness: the wrong DataTable was used with relationship " + rel.getName());
         }
 
-        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
-                                        primaryKeys.get(1).toString(), lim2);
+        HashMap<String, Set<String>> k1ToK2s = new HashMap<>();
+        for (List<DataCell> row : data.rows()) {
+            String k1Val = row.get(k1Idx).value();
+            String k2Val = row.get(k2Idx).value();
+
+            if (k1ToK2s.containsKey(k1Val)) {
+                k1ToK2s.get(k1Val).add(k2Val);
+            } else {
+                k1ToK2s.put(k1Val, new HashSet<>(Collections.singleton(k2Val)));
+            }
+        }
+
+        if (k1ToK2s.isEmpty()) {
+            return true;
+        }
+
+        // Check that every set for each k1 have the same vals
+        Set<String> sampleSet = k1ToK2s.values().stream().findAny().get();
+        for (String k1 : k1ToK2s.keySet()) {
+            Set<String> testSet = k1ToK2s.get(k1);
+            if (!sampleSet.containsAll(testSet) || !testSet.containsAll(sampleSet)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static DataTable loadData(ERModel rm, Relationship relationship,
+                                     Set<PrimaryKey> primaryKeys, Set<Attribute> attributes) throws SQLException {
+        return rm.getDataTableWithAttributes(relationship, primaryKeys, attributes);
+    }
+
+    public static DataTable loadData(ERModel rm, EntityType entity, Relationship relationship,
+                                     Set<Attribute> attributes) throws SQLException {
+        Set<PrimaryKey> primaryKeys = new HashSet<>();
+        if (entity != null) {
+            primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
+        } else if (relationship != null) {
+            primaryKeys.add(relationship.getA().getPrimaryKey());
+            primaryKeys.add(relationship.getB().getPrimaryKey());
+        }
+
+        return loadData(rm, relationship, primaryKeys, attributes);
     }
 }

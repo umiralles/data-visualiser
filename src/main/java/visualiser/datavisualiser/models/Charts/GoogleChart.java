@@ -132,6 +132,10 @@ public abstract class GoogleChart implements Chart {
         String valueFormat = cell.valueFormat();
         JSONObject properties = cell.properties();
 
+        if (value == null) {
+            return null;
+        }
+
         JSONObject cellJson = new JSONObject();
 
         switch (type) {
