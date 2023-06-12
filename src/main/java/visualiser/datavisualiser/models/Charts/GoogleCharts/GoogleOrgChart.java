@@ -22,8 +22,10 @@ public class GoogleOrgChart extends GoogleChart {
         }
 
         if (colourId != null) {
-            addColorsOption(colourId);
-//            newOrderOfData.add(colourId);
+//            addOption("allowHtml", true);
+//            convertToColourCellProperties(colourId);
+            List<String> rowColours = dataTable.getHexColoursFromId(colourId);
+            addOption("data-vis-row-colour", rowColours);
         }
 
         reOrderData(newOrderOfData);

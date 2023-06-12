@@ -109,6 +109,7 @@ public class DataModelController implements Initializable {
         }
 
         user.setGraphDetector(gd);
+        user.setVisSchemaPattern(currVisPattern);
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.GRAPH_SELECT);
     }

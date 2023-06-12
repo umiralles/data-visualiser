@@ -32,11 +32,7 @@ public class GraphDetector {
     private final Map<String, Set<GraphPlan>> plans;
 
     // Should always be either null or all data for all possible attributes
-    private DataTable data = null;
-    // Limits K1
-    private int lim1 = -1;
-    // Limits K2, Not used for basic entity plans
-    private int lim2 = -1;
+    private DataTable data;
 
     private GraphDetector(EntityType entity, Relationship relationship, Set<Attribute> attributes,
                           Map<String, Set<GraphPlan>> plans, DataTable data) {
@@ -67,25 +63,30 @@ public class GraphDetector {
         this(entity, attributes, plans, null);
     }
 
-    public void setLim1(int lim1) {
-        this.lim1 = lim1;
+    public EntityType getEntity() {
+        return entity;
     }
 
-    public void setLim2(int lim2) {
-        this.lim2 = lim2;
+    public Relationship getRelationship() {
+        return relationship;
+    }
+
+    public Set<Attribute> getAttributes() {
+        return attributes;
     }
 
     public Map<String, Set<GraphPlan>> getPlans() {
         return plans;
     }
 
-    public DataTable getData(ERModel rm) throws SQLException {
+    public DataTable getData(ERModel rm, int lim1, int lim2, String compareAttId,
+                             Comparator<? super DataCell> comparator) throws SQLException {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
         if (entity != null) {
             primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
         } else if (relationship != null) {
-            primaryKeys.add(relationship.getA().getPrimaryKey());
             primaryKeys.add(relationship.getB().getPrimaryKey());
+            primaryKeys.add(relationship.getA().getPrimaryKey());
         }
 
         if (data == null) {
@@ -99,11 +100,11 @@ public class GraphDetector {
         }
 
         if (primaryKeys.size() == 1) {
-            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, null, -1);
+            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, compareAttId, comparator);
         }
 
         return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
-                primaryKeys.get(1).toString(), lim2);
+                primaryKeys.get(1).toString(), lim2, compareAttId, comparator);
     }
 
     // kInput: must be a key attribute of the entity

@@ -55,7 +55,7 @@ public abstract class BasicGraphPlan extends GraphPlan {
 
     public abstract List<AttributeType> getOptionals();
 
-    protected PrimaryKey getK1() {
+    public PrimaryKey getK1() {
         return k1;
     }
 

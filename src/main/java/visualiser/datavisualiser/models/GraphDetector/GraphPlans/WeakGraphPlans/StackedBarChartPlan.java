@@ -91,8 +91,8 @@ public class StackedBarChartPlan extends WeakGraphPlan {
 
     @Override
     public Chart getChart(DataTable dataTable) {
-        String groupId = getK1().toString(); // city
-        String groupTitleId = getK2().toString(); // year // x axis
+        String groupId = getOwnerKey().toString(); // city
+        String groupTitleId = getWeakKey().toString(); // year // x axis
         String yAxisId = getOrderedMandatories().get(0).attribute().toString(); // population
 
         DataTable shiftedData = shiftDataViaGroups(dataTable, groupId, groupTitleId, yAxisId);

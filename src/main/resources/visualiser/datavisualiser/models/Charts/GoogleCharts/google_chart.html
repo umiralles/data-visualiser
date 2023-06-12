@@ -65,9 +65,15 @@
             break;
           case 'TreeMap':
             chart = new google.visualization.TreeMap(document.getElementById('chart_div'));
+            options['generateTooltip'] = showFullTooltip;
             break;
           case 'OrgChart':
             chart = new google.visualization.OrgChart(document.getElementById('chart_div'));
+            if (Object.values(options).includes("data-vis-rows-colours")) {
+              for (let i = 0; i < options.data-vis-rows-colours.length; i++) {
+                data.setRowProperty(i, 'style', 'background-color:' + options.data-vis-rows-colours[i] + ';');
+              }
+            }
             break;
           case 'LineChart':
             chart = new google.visualization.LineChart(document.getElementById('chart_div'));
@@ -84,6 +90,15 @@
         }
 
         chart.draw(data, options);
+
+        // TreeMap full tooltip function
+        function showFullTooltip(row, size, value) {
+          return '<div style="background:#def5fc; padding:5px">' +
+                '<span style="font-family:Arial, Helvetica, sans-serif"><b>' + data.getValue(row, 0) +
+                '</b>, ' + data.getValue(row, 1) + ', ' + data.getValue(row, 2) + '<br>' +
+          'Total ' + data.getColumnLabel(2) +
+                ': ' + size + '<br></span>';
+        }
       }
     </script>
   </head>

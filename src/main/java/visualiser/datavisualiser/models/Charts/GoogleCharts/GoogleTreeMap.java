@@ -19,11 +19,12 @@ public class GoogleTreeMap extends GoogleChart {
 
         if (colourId != null) {
             reOrderData(List.of(childLabelId, parentLabelId, nodeSizeId, colourId));
-            // Shows colour scale
-            addOption("showScale", true);
         } else {
             reOrderData(List.of(childLabelId, parentLabelId, nodeSizeId));
         }
+
+        // Shows colour scale
+        addOption("showScale", true);
 
         // Add parent labels to child label column (to be a root in the graph)
         int nodeSizeIdx = IntStream.range(0, dataTable.columns().size()).dropWhile(idx -> !dataTable.columns().get(idx).id().equals(nodeSizeId)).findFirst().getAsInt();
@@ -62,6 +63,11 @@ public class GoogleTreeMap extends GoogleChart {
         }
 
         addRows(newRows);
+
+        addOption("enableHighlight", true);
+        addOption("maxDepth", 1);
+        addOption("maxPostDepth", 2);
+        addOption("useWeightedAverageForAggregation", true);
 
         addTitle("Tree Map");
     }

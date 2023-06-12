@@ -1,5 +1,6 @@
 package visualiser.datavisualiser.models.Charts;
 
+import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
@@ -164,19 +165,26 @@ public abstract class GoogleChart implements Chart {
     }
 
     @Override
-    public void showChart(WebView webView) {
+    public ChangeListener<? super Worker.State> showChart(WebView webView, ChangeListener<? super Worker.State> oldListener) {
         WebEngine engine = webView.getEngine();
         engine.load(getClass().getResource("google_chart.html").toExternalForm());
 
         // Inject the JSON data into the WebView after the page finishes loading
-        engine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+        if (oldListener != null) {
+            engine.getLoadWorker().stateProperty().removeListener(oldListener);
+        }
+
+        ChangeListener<? super Worker.State> newListener = (observable, oldValue, newValue) -> {
             if (newValue == Worker.State.SUCCEEDED) {
                 String jsonString = getJson().toString().replace("'", "\\'");
 
                 engine.executeScript("var globalJson = " + jsonString + ";");
                 engine.executeScript("drawChart('" + jsonString + "');");
             }
-        });
+        };
+
+        engine.getLoadWorker().stateProperty().addListener(newListener);
+        return newListener;
     }
 
     protected boolean reOrderData(List<String> newIdsOrder) {
@@ -280,6 +288,22 @@ public abstract class GoogleChart implements Chart {
 
     protected void convertToColourStyleColumn(String colourId) {
         convertToColourStyleColumn(colourId, Color.YELLOW, Color.RED);
+    }
+
+    protected void convertToColourCellProperties(String colourId) {
+        convertToColourCellProperties(colourId, Color.YELLOW, Color.RED);
+    }
+
+    protected void convertToColourCellProperties(String colourId, Color startColour, Color endColour) {
+        List<String> hexColours = dataTable.getHexColoursFromId(colourId, startColour, endColour);
+        for (int i = 0; i < dataTable.rows().size(); i++) {
+            List<DataCell> row = dataTable.rows().get(i);
+            String hexColour = hexColours.get(i);
+            for (DataCell cell : row) {
+                cell.setProperty("style", "background-color:" + hexColour + " !important;");
+//                cell.setProperty("style", "border: 1px solid green;");
+            }
+        }
     }
 
 //    protected void convertToAnnotationColumn(String annotationId) {

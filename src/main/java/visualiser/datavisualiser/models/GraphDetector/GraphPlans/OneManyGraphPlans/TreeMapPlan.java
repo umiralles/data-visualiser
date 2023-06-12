@@ -87,6 +87,6 @@ public class TreeMapPlan extends OneManyGraphPlan {
             colourId = getOrderedOptionals().get(0).attribute().toString();
         }
 
-        return new GoogleTreeMap(dataTable, getK1().toString(), getK2().toString(), nodeSizeId, colourId);
+        return new GoogleTreeMap(dataTable, getChildKey().toString(), getParentKey().toString(), nodeSizeId, colourId);
     }
 }

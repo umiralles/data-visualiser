@@ -11,29 +11,29 @@ import java.util.*;
 
 public abstract class OneManyGraphPlan extends GraphPlan {
 
-    private final PrimaryKey k1;
-    private final PrimaryKey k2;
+    private final PrimaryKey parentKey;
+    private final PrimaryKey childKey;
     private final List<GraphAttribute> orderedMandatoryAtts;
     private final List<GraphAttribute> orderedOptionalAtts;
 
-    OneManyGraphPlan(PrimaryKey k1, PrimaryKey k2, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
-        this.k1 = k1;
-        this.k2 = k2;
+    OneManyGraphPlan(PrimaryKey parentKey, PrimaryKey childKey, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
+        this.parentKey = parentKey;
+        this.childKey = childKey;
         this.orderedMandatoryAtts = orderedMandatoryAtts;
         this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
     @Override
     public String getName() {
-        return k1.getTable() + " - " + k2.getTable();
+        return parentKey.getTable() + " - " + childKey.getTable();
     }
 
-    protected PrimaryKey getK1() {
-        return k1;
+    public PrimaryKey getParentKey() {
+        return parentKey;
     }
 
-    protected PrimaryKey getK2() {
-        return k2;
+    public PrimaryKey getChildKey() {
+        return childKey;
     }
 
     protected List<GraphAttribute> getOrderedMandatories() {
@@ -89,9 +89,9 @@ public abstract class OneManyGraphPlan extends GraphPlan {
 //        return plans;
 //    }
 
-    public boolean fitKTypes(PrimaryKey k1, PrimaryKey k2) {
-        Set<PrimaryAttribute> k1Atts = k1.getPAttributes();
-        Set<PrimaryAttribute> k2Atts = k2.getPAttributes();
+    public boolean fitKTypes(PrimaryKey parentKey, PrimaryKey childKey) {
+        Set<PrimaryAttribute> k1Atts = parentKey.getPAttributes();
+        Set<PrimaryAttribute> k2Atts = childKey.getPAttributes();
 
         boolean k1Correct;
         if (k1Atts.size() == 1) {
@@ -115,7 +115,7 @@ public abstract class OneManyGraphPlan extends GraphPlan {
         return false;
     }
 
-    public Set<GraphPlan> fitAttributesToPlan(PrimaryKey k1, PrimaryKey k2, List<Attribute> unorderedAtts) {
+    public Set<GraphPlan> fitAttributesToPlan(PrimaryKey parentKey, PrimaryKey childKey, List<Attribute> unorderedAtts) {
         int attSize = unorderedAtts.size();
         int smallestAttsSize = getMandatories().size();
         int largestAttsSize = smallestAttsSize + getOptionals().size();
@@ -132,7 +132,7 @@ public abstract class OneManyGraphPlan extends GraphPlan {
             List<GraphAttribute> possibleMandOrder = possibleOrder.subList(0, numMandatories);
             List<GraphAttribute> possibleOptOrder = possibleOrder.subList(numMandatories, possibleOrder.size());
 
-            plans.add(getInstance(k1, k2, possibleMandOrder, possibleOptOrder));
+            plans.add(getInstance(parentKey, childKey, possibleMandOrder, possibleOptOrder));
         }
 
         return plans;
@@ -140,6 +140,6 @@ public abstract class OneManyGraphPlan extends GraphPlan {
 
     @Override
     public int hashCode() {
-        return Objects.hash(k1, orderedMandatoryAtts, orderedOptionalAtts);
+        return Objects.hash(parentKey, orderedMandatoryAtts, orderedOptionalAtts);
     }
 }

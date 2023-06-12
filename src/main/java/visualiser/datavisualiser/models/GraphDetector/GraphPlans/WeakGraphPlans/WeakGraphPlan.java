@@ -16,31 +16,31 @@ import java.util.*;
 public abstract class WeakGraphPlan extends GraphPlan {
 
     // Weak entity attribute
-    private final PrimaryKey k1;
+    private final PrimaryKey ownerKey;
     // Owner entity attribute
-    private final PrimaryKey k2;
+    private final PrimaryKey weakKey;
     // Attributes from weak entity
     private final List<GraphAttribute> orderedMandatoryAtts;
     private final List<GraphAttribute> orderedOptionalAtts;
 
-    WeakGraphPlan(PrimaryKey k1, PrimaryKey k2, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
-        this.k1 = k1;
-        this.k2 = k2;
+    WeakGraphPlan(PrimaryKey ownerKey, PrimaryKey weakKey, List<GraphAttribute> orderedMandatoryAtts, List<GraphAttribute> orderedOptionalAtts) {
+        this.ownerKey = ownerKey;
+        this.weakKey = weakKey;
         this.orderedMandatoryAtts = orderedMandatoryAtts;
         this.orderedOptionalAtts = orderedOptionalAtts;
     }
 
     @Override
     public String getName() {
-        return k1.getTable() + " - " + k2.getTable();
+        return ownerKey.getTable() + " - " + weakKey.getTable();
     }
 
-    protected PrimaryKey getK1() {
-        return k1;
+    public PrimaryKey getOwnerKey() {
+        return ownerKey;
     }
 
-    protected PrimaryKey getK2() {
-        return k2;
+    public PrimaryKey getWeakKey() {
+        return weakKey;
     }
 
     protected List<GraphAttribute> getOrderedMandatories() {
@@ -238,6 +238,6 @@ public abstract class WeakGraphPlan extends GraphPlan {
 
     @Override
     public int hashCode() {
-        return Objects.hash(k1, k2, orderedMandatoryAtts, orderedOptionalAtts);
+        return Objects.hash(ownerKey, weakKey, orderedMandatoryAtts, orderedOptionalAtts);
     }
 }

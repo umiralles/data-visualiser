@@ -88,8 +88,8 @@ public class LineChartPlan extends WeakGraphPlan {
 
     @Override
     public Chart getChart(DataTable dataTable) {
-        String linesId = getK1().toString(); // city
-        String lineValsId = getK2().toString(); // year // x axis
+        String linesId = getOwnerKey().toString(); // city
+        String lineValsId = getWeakKey().toString(); // year // x axis
         String yAxisId = getOrderedMandatories().get(0).attribute().toString(); // population
 
         DataTable shiftedData = shiftDataViaGroups(dataTable, linesId, lineValsId, yAxisId);

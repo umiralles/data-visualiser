@@ -1,6 +1,8 @@
 package visualiser.datavisualiser.controllers;
 
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -15,11 +17,19 @@ import javafx.scene.web.WebView;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
 import visualiser.datavisualiser.models.Charts.Chart;
+import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleTreeMap;
+import visualiser.datavisualiser.models.DataTable.DataCell;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
+import visualiser.datavisualiser.models.ERModel.Keys.PrimaryAttribute;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlans.BasicGraphPlan;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.ManyManyGraphPlans.ManyManyGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.OneManyGraphPlans.OneManyGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.GraphPlans.WeakGraphPlans.WeakGraphPlan;
+import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
@@ -29,12 +39,25 @@ import java.util.*;
 public class GraphSelectController implements Initializable {
 
     private static final String NOT_SELECTED = "N/A";
+    private static final String KEY_ONE = "Key 1";
+    private static final String KEY_TWO = "Key 2";
+    private static final String ASCENDING = "Ascending";
+    private static final String DESCENDING = "Descending";
 
     @FXML
     private ChoiceBox<String> graphChoice;
 
     @FXML
     private WebView graphWebView;
+
+    @FXML
+    public Text k1AttsText;
+
+    @FXML
+    public HBox k2AttsHBox;
+
+    @FXML
+    public Text k2AttsText;
 
     @FXML
     public VBox attTypesVBox;
@@ -50,7 +73,10 @@ public class GraphSelectController implements Initializable {
     public ChoiceBox<String> typeChoiceBoxTemplate;
 
     @FXML
-    public Text graphErrorText;
+    public ChoiceBox<String> limitAttChoice;
+
+    @FXML
+    public ChoiceBox<String> limitOrderChoice;
 
     @FXML
     public TextField limitSet1TextField;
@@ -58,13 +84,18 @@ public class GraphSelectController implements Initializable {
     @FXML
     public TextField limitSet2TextField;
 
+    @FXML
+    public Text graphErrorText;
+
+    private final Map<String, Attribute> attributeMap = new HashMap<>();
+
     // Plans that are of the graph type selected
     private List<GraphPlan> chosenPlans = null;
 
     // Plan being displayed
     private GraphPlan chosenPlan = null;
 
-    private final Map<String, Attribute> attributeMap = new HashMap<>();
+    private ChangeListener<? super Worker.State> chartListener = null;
 
     @FXML
     public void onHomeButtonClick() {
@@ -90,23 +121,7 @@ public class GraphSelectController implements Initializable {
     @FXML
     public void onLimitSetButtonClick() {
         User user = ViewUtils.receiveData();
-
-        if (limitSet1TextField.getText().isEmpty()) {
-            return;
-        }
-
-        int lim1 = Integer.parseInt(limitSet1TextField.getText());
-        user.getGraphDetector().setLim1(lim1);
-
-        if (limitSet2TextField.getText().isEmpty()) {
-            updateShownGraph(user.getERModel(), user.getGraphDetector(), chosenPlan);
-            return;
-        }
-
-        int lim2 = Integer.parseInt(limitSet2TextField.getText());
-        user.getGraphDetector().setLim2(lim2);
-
-        updateShownGraph(user.getERModel(), user.getGraphDetector(), chosenPlan);
+        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector());
     }
 
     @Override
@@ -119,6 +134,49 @@ public class GraphSelectController implements Initializable {
             return;
         }
 
+        /* LIMITS */
+        // Set limit attribute choice boxes
+        for (Attribute additionalAtt : gd.getAttributes()) {
+            limitAttChoice.getItems().add(additionalAtt.toString());
+        }
+
+        limitAttChoice.getItems().add(KEY_ONE);
+        switch (user.getVisSchemaPattern()) {
+            case WEAK_ENTITY, ONE_MANY_REL, MANY_MANY_REL, REFLEXIVE -> limitAttChoice.getItems().add(KEY_TWO);
+        }
+
+        limitAttChoice.setValue(limitAttChoice.getItems().get(0));
+
+        // Set limit order choice boxes
+        limitOrderChoice.getItems().add(ASCENDING);
+        limitOrderChoice.getItems().add(DESCENDING);
+        limitOrderChoice.setValue(limitOrderChoice.getItems().get(0));
+
+        /* KEYS */
+        // Set key text boxes
+        switch (user.getVisSchemaPattern()) {
+            case BASIC_ENTITY -> {
+                k2AttsHBox.setVisible(false);
+                limitSet2TextField.setVisible(false);
+                List<PrimaryAttribute> keyAtts = new ArrayList<>(user.getERModel()
+                        .getRelation(gd.getEntity().getName()).getPrimaryKey().getPAttributes());
+                k1AttsText.setText(attsToString(keyAtts));
+            }
+            case WEAK_ENTITY, ONE_MANY_REL, MANY_MANY_REL, REFLEXIVE -> {
+                List<Attribute> k1Atts = new ArrayList<>(gd.getRelationship().getB().getPrimaryKeySet());
+                List<Attribute> k2Atts = new ArrayList<>(gd.getRelationship().getA().getPrimaryKeySet());
+
+                if (user.getVisSchemaPattern() == VisSchemaPattern.WEAK_ENTITY) {
+                    List<List<Attribute>> sharedPAtts = gd.getRelationship().getB().getPrimaryKey().sharedAttributes(new HashSet<>(k2Atts));
+                    k2Atts.removeAll(sharedPAtts.get(1));
+                }
+
+                k1AttsText.setText(attsToString(k1Atts));
+                k2AttsText.setText(attsToString(k2Atts));
+            }
+        }
+
+        /* PLAN TYPES */
         Map<String, Set<GraphPlan>> plans = gd.getPlans();
         for (String planType : plans.keySet()) {
             if (plans.get(planType) == null || plans.get(planType).isEmpty()) {
@@ -133,14 +191,16 @@ public class GraphSelectController implements Initializable {
         graphChoice.setOnAction(event -> {
             /* Reset */
             clearAttTypesVBox();
+            graphErrorText.setText("");
 
             chosenPlans = new ArrayList<>(plans.get(graphChoice.getValue()));
 
             /* Set new graph */
-            updateShownGraph(rm, gd, chosenPlans.get(0));
+            this.chosenPlan = chosenPlans.get(0);
+            updateGraphPlanType(rm, gd);
 
             // Add each type to side menu
-            List<GraphAttribute> orderedAtts = chosenPlans.get(0).getAllOrderedAttributes();
+            List<GraphAttribute> orderedAtts = this.chosenPlan.getAllOrderedAttributes();
             for (int i = 0; i < orderedAtts.size(); i++) {
                 addAttTypeToVBox(orderedAtts.get(i), i);
             }
@@ -148,6 +208,15 @@ public class GraphSelectController implements Initializable {
         });
 
         graphChoice.setValue(graphChoice.getItems().get(0));
+    }
+
+    private String attsToString(List<? extends Attribute> pAtts) {
+        StringBuilder keyStr = new StringBuilder(pAtts.get(0).toString());
+        for (int i = 1; i < pAtts.size(); i++) {
+            keyStr.append(" + ").append(pAtts.get(i).getColumn());
+        }
+
+        return keyStr.toString();
     }
 
     private List<Attribute> getSelectedAttributes() {
@@ -202,6 +271,7 @@ public class GraphSelectController implements Initializable {
                 dupLabel.setMinWidth(template.getMinWidth());
                 dupLabel.setMaxWidth(template.getMaxWidth());
                 HBox.setMargin(dupLabel, HBox.getMargin(template));
+                dupLabel.setAlignment(template.getAlignment());
 
                 typeBox.getChildren().add(0, dupLabel);
 
@@ -250,24 +320,74 @@ public class GraphSelectController implements Initializable {
         attTypesVBox.getChildren().add(typeBox);
     }
 
-    private void updateShownGraph(ERModel rm, GraphDetector gd, GraphPlan chosenPlan) {
-        this.chosenPlan = chosenPlan;
+    private void updateGraphPlanType(ERModel rm, GraphDetector gd) {
+        // Set limit defaults
+        if (this.chosenPlan instanceof BasicGraphPlan basicPlan) {
+            limitSet1TextField.setText(String.valueOf(basicPlan.getKUpperLim()));
+            limitSet2TextField.setText(String.valueOf(-1));
+        } else if (this.chosenPlan instanceof WeakGraphPlan weakPlan) {
+            limitSet1TextField.setText(String.valueOf(weakPlan.getK1UpperLim()));
+            limitSet2TextField.setText(String.valueOf(weakPlan.getK2UpperLim()));
+        } else if (this.chosenPlan instanceof OneManyGraphPlan oneManyPlan) {
+            limitSet1TextField.setText(String.valueOf(oneManyPlan.getK1UpperLim()));
+            limitSet2TextField.setText(String.valueOf(oneManyPlan.getK2PerK1UpperLim()));
+        } else if (this.chosenPlan instanceof ManyManyGraphPlan manyManyPlan) {
+            limitSet1TextField.setText(String.valueOf(manyManyPlan.getK1UpperLim()));
+            limitSet2TextField.setText(String.valueOf(manyManyPlan.getK2UpperLim()));
+        }
+
+        reDisplayChosenPlan(rm, gd);
+    }
+
+    private void reDisplayChosenPlan(ERModel rm, GraphDetector gd) {
+        Comparator<? super DataCell> limitComparator = null;
+        switch (limitOrderChoice.getValue()) {
+            case ASCENDING -> limitComparator = Comparator.naturalOrder();
+            case DESCENDING -> limitComparator = Comparator.reverseOrder();
+        }
 
         try {
-            Chart chart = chosenPlan.getChart(gd.getData(rm));
+            String compareAttId = limitAttChoice.getValue();
+            if (compareAttId.equals(KEY_ONE)) {
+                if (chosenPlan instanceof BasicGraphPlan basicPlan) {
+                    compareAttId = basicPlan.getK1().toString();
+                } else if (chosenPlan instanceof WeakGraphPlan weakPlan) {
+                    compareAttId = weakPlan.getOwnerKey().toString();
+                } else if (chosenPlan instanceof OneManyGraphPlan oneManyPlan) {
+                    compareAttId = oneManyPlan.getParentKey().toString();
+                } else if (chosenPlan instanceof ManyManyGraphPlan manyManyPlan) {
+                    compareAttId = manyManyPlan.getK1().toString();
+                }
+            } else if (compareAttId.equals(KEY_TWO)) {
+                if (chosenPlan instanceof WeakGraphPlan weakPlan) {
+                    compareAttId = weakPlan.getWeakKey().toString();
+                } else if (chosenPlan instanceof OneManyGraphPlan oneManyPlan) {
+                    compareAttId = oneManyPlan.getChildKey().toString();
+                } else if (chosenPlan instanceof ManyManyGraphPlan manyManyPlan) {
+                    compareAttId = manyManyPlan.getK2().toString();
+                }
+            }
+
+            Chart chart = chosenPlan.getChart(gd.getData(rm, Integer.parseInt(limitSet1TextField.getText()),
+                    Integer.parseInt(limitSet2TextField.getText()), compareAttId, limitComparator));
             if (chart == null) {
-                graphErrorText.setText("This graph plan has no supported graph.");
+                graphErrorText.setText("This graph plan has no supported graph visualiser.");
                 return;
             }
 
             chart.setSize(690, 400);
 //            chart.testChart();
-            chart.showChart(graphWebView);
+            this.chartListener = chart.showChart(graphWebView, chartListener);
+
+            if (chart instanceof GoogleTreeMap) {
+                graphErrorText.setText("(use right click to go up in depth)");
+            }
 
         } catch (SQLException e) {
             System.out.println("GraphSelectController.updateShownGraph: " + e.getMessage());
         }
     }
+
 
     private void updateGraphFromChoice(ActionEvent actionEvent) {
         /* Find a plan matching the chosen options */
@@ -294,7 +414,8 @@ public class GraphSelectController implements Initializable {
             // TODO: load ... page
         } else {
             User user = ViewUtils.receiveData();
-            updateShownGraph(user.getERModel(), user.getGraphDetector(), optPlan.get());
+            this.chosenPlan = optPlan.get();
+            updateGraphPlanType(user.getERModel(), user.getGraphDetector());
         }
     }
 }

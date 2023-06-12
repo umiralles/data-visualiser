@@ -87,6 +87,6 @@ public class HierarchyTreePlan extends OneManyGraphPlan {
             colourId = getOrderedOptionals().get(0).attribute().toString();
         }
 
-        return new GoogleOrgChart(dataTable, getK1().toString(), getK2().toString(), colourId);
+        return new GoogleOrgChart(dataTable, getChildKey().toString(), getParentKey().toString(), colourId);
     }
 }

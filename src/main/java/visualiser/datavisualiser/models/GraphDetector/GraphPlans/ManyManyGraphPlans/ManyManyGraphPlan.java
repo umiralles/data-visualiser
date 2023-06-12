@@ -28,11 +28,11 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
         return k1.getTable() + " - " + k2.getTable();
     }
 
-    protected PrimaryKey getK1() {
+    public PrimaryKey getK1() {
         return k1;
     }
 
-    protected PrimaryKey getK2() {
+    public PrimaryKey getK2() {
         return k2;
     }
 
