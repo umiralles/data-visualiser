@@ -241,7 +241,7 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
             }
         }
 
-        return new DataTable(dataTable.columns, newRows);
+        return new DataTable(new ArrayList<>(dataTable.columns), newRows);
     }
 
 //    public static DataTable getWithReplacedColumnData(DataTable dataTable, String oldColumnId, Column newColumn) {

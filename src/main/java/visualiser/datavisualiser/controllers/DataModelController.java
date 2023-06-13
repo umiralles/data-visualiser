@@ -408,10 +408,10 @@ public class DataModelController implements Initializable {
                     visSchemaChoice.getItems()
                             .add(getVisSchemaChoiceName(VisSchemaPattern.WEAK_ENTITY, rel.getName()));
 
-                } else {
-                    visSchemaChoice.getItems()
-                            .add(getVisSchemaChoiceName(VisSchemaPattern.ONE_MANY_REL, rel.getName()));
                 }
+                visSchemaChoice.getItems()
+                            .add(getVisSchemaChoiceName(VisSchemaPattern.ONE_MANY_REL, rel.getName()));
+
             } else if (rel instanceof NAryRelationship) {
                 // Check for reflexive relationship
                 if (((NAryRelationship) rel).isReflexive()) {

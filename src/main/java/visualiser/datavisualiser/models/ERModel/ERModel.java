@@ -14,6 +14,7 @@ import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 import visualiser.datavisualiser.models.ERModel.Relations.RelationType;
 import visualiser.datavisualiser.models.ERModel.Relationships.*;
+import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
 
 import java.sql.*;
 import java.util.*;
@@ -147,14 +148,15 @@ public class ERModel {
         return relations.get(name);
     }
 
-    public DataTable getDataTableWithAttributes(Relationship rel, Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
+    public DataTable getDataTableWithAttributes(Relationship rel, VisSchemaPattern pattern,
+                                                Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
         List<PrimaryKey> pksList = new ArrayList<>(pks);
         List<List<PrimaryAttribute>> pkAtts = new ArrayList<>();
         pksList.forEach(pk -> pkAtts.add(new ArrayList<>(pk.getPAttributes())));
 
         // if there is a binary relationship, check if one primary key contains the other. If so, remove the
         //  similar attributes from the larger key
-        if (rel instanceof BinaryRelationship && !rel.getA().equals(rel.getB())) {
+        if (rel instanceof BinaryRelationship && !rel.getA().equals(rel.getB()) && pattern == VisSchemaPattern.WEAK_ENTITY) {
             // There should be two primary keys
             List<List<PrimaryAttribute>> sharedAtts = pksList.get(0).sharedAttributes(pksList.get(1));
             if (pkAtts.get(0).size() > pkAtts.get(1).size()) {
@@ -195,9 +197,11 @@ public class ERModel {
         List<Attribute> attsList = new ArrayList<>(atts);
 
         StringBuilder q = new StringBuilder("SELECT ");
-        q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn());
+        q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn())
+                .append(" AS ").append(getQueryName(attsList.get(0)));
         for (int i = 1; i < attsList.size(); i++) {
-            q.append(", ").append(attsList.get(i).getTable()).append('.').append(attsList.get(i).getColumn());
+            q.append(", ").append(attsList.get(i).getTable()).append('.').append(attsList.get(i).getColumn())
+                    .append(" AS ").append(getQueryName(attsList.get(i)));
         }
 
         q.append(" FROM ");
@@ -249,6 +253,10 @@ public class ERModel {
         return q.toString();
     }
 
+    private static String getQueryName(Attribute attribute) {
+        return attribute.getTable() + attribute.getColumn();
+    }
+
     private List<List<DataCell>> getRowsFromQueryAndAtts(String query, List<List<PrimaryAttribute>> pks, List<Attribute> atts) throws SQLException {
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery(query);
@@ -260,11 +268,11 @@ public class ERModel {
 
             for (List<PrimaryAttribute> pAtts : pks) {
                 // TODO: check that the rs call is right
-                String firstKeyVal = String.valueOf(rs.getObject(pAtts.get(0).getColumn()));
+                String firstKeyVal = String.valueOf(rs.getObject(getQueryName(pAtts.get(0))));
                 StringBuilder s = new StringBuilder(firstKeyVal);
 
                 for (int i = 1; i < pAtts.size(); i++) {
-                    String keyVal = String.valueOf(rs.getObject(pAtts.get(i).getColumn()));
+                    String keyVal = String.valueOf(rs.getObject(getQueryName(pAtts.get(i))));
                     s.append(", ").append(keyVal);
                 }
 
@@ -277,7 +285,7 @@ public class ERModel {
 
             for (Attribute att : atts) {
                 // TODO: check that the rs call is right
-                row.add(new DataCell(String.valueOf(rs.getObject(att.getColumn())), att.getDBType().getDataType()));
+                row.add(new DataCell(String.valueOf(rs.getObject(getQueryName(att))), att.getDBType().getDataType()));
             }
 
             rows.add(row);

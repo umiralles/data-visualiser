@@ -10,14 +10,14 @@ public class GoogleScatterChart extends GoogleChart {
 
     private final static int BUBBLE_SIZE = 5;
 
-    public GoogleScatterChart(DataTable dataTable, String labelId, String xAxisId, String yAxisId, String colourId) {
+    public GoogleScatterChart(DataTable dataTable, String labelId, String yAxisId, String xAxisId, String colourId) {
         super(dataTable);
 
         if (colourId != null) {
-            reOrderData(List.of(labelId, xAxisId, yAxisId, colourId));
+            reOrderData(List.of(labelId, yAxisId, xAxisId, colourId));
             addColourAxis();
         } else {
-            reOrderData(List.of(labelId, xAxisId, yAxisId));
+            reOrderData(List.of(labelId, yAxisId, xAxisId));
             hideColourAxis();
         }
 
@@ -34,8 +34,8 @@ public class GoogleScatterChart extends GoogleChart {
         addSizeAxis(5, 5);
     }
 
-    public GoogleScatterChart(DataTable dataTable, String labelId, String xAxisId, String yAxisId) {
-        this(dataTable, labelId, xAxisId, yAxisId, null);
+    public GoogleScatterChart(DataTable dataTable, String labelId, String yAxisId, String xAxisId) {
+        this(dataTable, labelId, yAxisId, xAxisId, null);
     }
 
     @Override

@@ -113,15 +113,17 @@ public class GraphSelectController implements Initializable {
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
 
-//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Bubble Chart");
-//
-//        updateShownGraph(user.getERModel(), user.getGraphDetector(), pls.stream().findFirst().get());
+//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Tree Map");
+//        this.chosenPlan = pls.stream().findFirst().get();
+//        limitOrderChoice.setValue(DESCENDING);
+//        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
+//        updateGraphPlanType(user.getERModel(), user.getGraphDetector());
     }
 
     @FXML
     public void onLimitSetButtonClick() {
         User user = ViewUtils.receiveData();
-        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector());
+        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
     }
 
     @Override
@@ -148,8 +150,8 @@ public class GraphSelectController implements Initializable {
         limitAttChoice.setValue(limitAttChoice.getItems().get(0));
 
         // Set limit order choice boxes
-        limitOrderChoice.getItems().add(ASCENDING);
         limitOrderChoice.getItems().add(DESCENDING);
+        limitOrderChoice.getItems().add(ASCENDING);
         limitOrderChoice.setValue(limitOrderChoice.getItems().get(0));
 
         /* KEYS */
@@ -188,6 +190,7 @@ public class GraphSelectController implements Initializable {
 
         /* Load first plan */
         ERModel rm = user.getERModel();
+        VisSchemaPattern pattern = user.getVisSchemaPattern();
         graphChoice.setOnAction(event -> {
             /* Reset */
             clearAttTypesVBox();
@@ -197,7 +200,7 @@ public class GraphSelectController implements Initializable {
 
             /* Set new graph */
             this.chosenPlan = chosenPlans.get(0);
-            updateGraphPlanType(rm, gd);
+            updateGraphPlanType(rm, gd, pattern);
 
             // Add each type to side menu
             List<GraphAttribute> orderedAtts = this.chosenPlan.getAllOrderedAttributes();
@@ -320,7 +323,7 @@ public class GraphSelectController implements Initializable {
         attTypesVBox.getChildren().add(typeBox);
     }
 
-    private void updateGraphPlanType(ERModel rm, GraphDetector gd) {
+    private void updateGraphPlanType(ERModel rm, GraphDetector gd, VisSchemaPattern pattern) {
         // Set limit defaults
         if (this.chosenPlan instanceof BasicGraphPlan basicPlan) {
             limitSet1TextField.setText(String.valueOf(basicPlan.getKUpperLim()));
@@ -336,10 +339,10 @@ public class GraphSelectController implements Initializable {
             limitSet2TextField.setText(String.valueOf(manyManyPlan.getK2UpperLim()));
         }
 
-        reDisplayChosenPlan(rm, gd);
+        reDisplayChosenPlan(rm, gd, pattern);
     }
 
-    private void reDisplayChosenPlan(ERModel rm, GraphDetector gd) {
+    private void reDisplayChosenPlan(ERModel rm, GraphDetector gd, VisSchemaPattern pattern) {
         Comparator<? super DataCell> limitComparator = null;
         switch (limitOrderChoice.getValue()) {
             case ASCENDING -> limitComparator = Comparator.naturalOrder();
@@ -368,7 +371,7 @@ public class GraphSelectController implements Initializable {
                 }
             }
 
-            Chart chart = chosenPlan.getChart(gd.getData(rm, Integer.parseInt(limitSet1TextField.getText()),
+            Chart chart = chosenPlan.getChart(gd.getData(rm, pattern, Integer.parseInt(limitSet1TextField.getText()),
                     Integer.parseInt(limitSet2TextField.getText()), compareAttId, limitComparator));
             if (chart == null) {
                 graphErrorText.setText("This graph plan has no supported graph visualiser.");
@@ -415,7 +418,7 @@ public class GraphSelectController implements Initializable {
         } else {
             User user = ViewUtils.receiveData();
             this.chosenPlan = optPlan.get();
-            updateGraphPlanType(user.getERModel(), user.getGraphDetector());
+            reDisplayChosenPlan(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
         }
     }
 }

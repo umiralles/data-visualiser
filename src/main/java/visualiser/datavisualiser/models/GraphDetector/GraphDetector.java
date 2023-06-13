@@ -79,7 +79,7 @@ public class GraphDetector {
         return plans;
     }
 
-    public DataTable getData(ERModel rm, int lim1, int lim2, String compareAttId,
+    public DataTable getData(ERModel rm, VisSchemaPattern pattern, int lim1, int lim2, String compareAttId,
                              Comparator<? super DataCell> comparator) throws SQLException {
         List<PrimaryKey> primaryKeys = new ArrayList<>();
         if (entity != null) {
@@ -96,7 +96,7 @@ public class GraphDetector {
             }
 
             // make a datatable based on the attributes
-            this.data = loadData(rm, relationship, new HashSet<>(primaryKeys), attributes);
+            this.data = loadData(rm, relationship, pattern, new HashSet<>(primaryKeys), attributes);
         }
 
         if (primaryKeys.size() == 1) {
@@ -203,7 +203,7 @@ public class GraphDetector {
                 if (dummyPlan.mustBeComplete()) {
                     // Check for completeness
                     if (isComplete == null) {
-                        data = loadData(rm, null, rel, new HashSet<>(as));
+                        data = loadData(rm, null, rel, VisSchemaPattern.WEAK_ENTITY, new HashSet<>(as));
                         isComplete = GraphDetector.checkForCompleteness(data, rel);
                     }
 
@@ -360,12 +360,12 @@ public class GraphDetector {
         return true;
     }
 
-    public static DataTable loadData(ERModel rm, Relationship relationship,
+    public static DataTable loadData(ERModel rm, Relationship relationship, VisSchemaPattern pattern,
                                      Set<PrimaryKey> primaryKeys, Set<Attribute> attributes) throws SQLException {
-        return rm.getDataTableWithAttributes(relationship, primaryKeys, attributes);
+        return rm.getDataTableWithAttributes(relationship, pattern, primaryKeys, attributes);
     }
 
-    public static DataTable loadData(ERModel rm, EntityType entity, Relationship relationship,
+    public static DataTable loadData(ERModel rm, EntityType entity, Relationship relationship, VisSchemaPattern pattern,
                                      Set<Attribute> attributes) throws SQLException {
         Set<PrimaryKey> primaryKeys = new HashSet<>();
         if (entity != null) {
@@ -375,6 +375,6 @@ public class GraphDetector {
             primaryKeys.add(relationship.getB().getPrimaryKey());
         }
 
-        return loadData(rm, relationship, primaryKeys, attributes);
+        return loadData(rm, relationship, pattern, primaryKeys, attributes);
     }
 }

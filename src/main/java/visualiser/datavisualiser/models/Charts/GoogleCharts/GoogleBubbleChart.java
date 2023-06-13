@@ -17,7 +17,7 @@ public class GoogleBubbleChart extends GoogleChart {
 
         if (colourId == null && bubbleSizeId != null) {
             colourId = "bubbleColourId";
-            addConstantColumn(colourId, CONST_COLOUR);
+            addConstantColumn(colourId, "", CONST_COLOUR);
             if (!reOrderData(List.of(labelId, xAxisId, yAxisId, colourId, bubbleSizeId))) {
                 throw new IllegalArgumentException("GoogleBubbleChart: Ids were not correct (one of " + labelId
                         + ", " + xAxisId + ", " + yAxisId + ", " + bubbleSizeId);

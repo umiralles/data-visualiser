@@ -65,7 +65,9 @@ public class ChoroplethMapPlan extends BasicGraphPlan {
     @Override
     public Chart getChart(DataTable dataTable) {
         String colourId = getOrderedMandatoryAtts().get(0).attribute().toString();
-        boolean useMarkers = !getK1().getTable().contains("country") && !getK1().getTable().contains("continent");
+        // Use markers if it is a country
+        boolean useMarkers = !getK1().getTable().contains("country") &&
+                !(getK1().getPAttributes().size() == 1 && getK1().getPAttributes().stream().findFirst().get().getColumn().contains("country"));
 
         return new GoogleGeoChart(dataTable, getK1().toString(), colourId, useMarkers);
     }

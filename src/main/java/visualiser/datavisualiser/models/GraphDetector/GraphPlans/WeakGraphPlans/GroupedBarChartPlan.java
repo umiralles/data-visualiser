@@ -99,6 +99,6 @@ public class GroupedBarChartPlan extends WeakGraphPlan {
         List<String> groups = shiftedData.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
         groups.remove(0);
 
-        return new GoogleMaterialColumnChart(dataTable, groupTitleId, groups);
+        return new GoogleMaterialColumnChart(shiftedData, groupTitleId, groups);
     }
 }

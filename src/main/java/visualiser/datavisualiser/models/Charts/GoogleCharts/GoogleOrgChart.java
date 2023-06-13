@@ -8,13 +8,13 @@ import java.util.List;
 
 public class GoogleOrgChart extends GoogleChart {
 
-    // parentLabelId, colourId and tooltipLabelId are all optional
-    public GoogleOrgChart(DataTable dataTable, String childLabelId, String colourId, String parentLabelId, String tooltipLabelId) {
+    // parentLabelId, colourId are all optional
+    public GoogleOrgChart(DataTable dataTable, String childLabelId, String parentLabelId, String colourId) {
         super(dataTable);
 
         List<String> newOrderOfData = new ArrayList<>();
-        if (parentLabelId != null && tooltipLabelId != null) {
-            newOrderOfData.addAll(List.of(childLabelId, parentLabelId, tooltipLabelId));
+        if (parentLabelId != null && colourId != null) {
+            newOrderOfData.addAll(List.of(childLabelId, parentLabelId, colourId));
         } else if (parentLabelId != null) {
             newOrderOfData.addAll(List.of(childLabelId, parentLabelId));
         } else {
@@ -22,19 +22,16 @@ public class GoogleOrgChart extends GoogleChart {
         }
 
         if (colourId != null) {
-//            addOption("allowHtml", true);
+            addOption("allowHtml", true);
 //            convertToColourCellProperties(colourId);
             List<String> rowColours = dataTable.getHexColoursFromId(colourId);
-            addOption("data-vis-row-colour", rowColours);
+            addOption("dataVisRowColours", rowColours);
+            addColumnValuePrefix(colourId, colourId + ": ");
         }
 
         reOrderData(newOrderOfData);
 
         addTitle("Org Chart");
-    }
-
-    public GoogleOrgChart(DataTable dataTable, String childLabelId, String parentLabelId, String colourId) {
-        this(dataTable, childLabelId, colourId, parentLabelId, null);
     }
 
     @Override

@@ -203,8 +203,8 @@ public abstract class GoogleChart implements Chart {
     }
 
     // Adds a new column where every value is the value of 'constant' and the column id is 'newColId'
-    protected void addConstantColumn(String newColId, int constant) {
-        Column newCol = new Column(DataType.INT, newColId);
+    protected void addConstantColumn(String newColId, String label, int constant) {
+        Column newCol = new Column(DataType.INT, newColId, label);
         String newVal = String.valueOf(constant);
         List<DataCell> newColVals =
                 Stream.generate(() -> new DataCell(newVal, DataType.INT))
@@ -215,6 +215,30 @@ public abstract class GoogleChart implements Chart {
 
     protected void addRows(List<List<DataCell>> newRows) {
         dataTable.rows().addAll(newRows);
+    }
+
+    // Note: changes type of the column to DataType.STRING
+    protected void addColumnValuePrefix(String colId, String prefix) {
+        int colIdx = -1;
+        for (int i = 0; i < dataTable.columns().size(); i++) {
+            Column col = dataTable.columns().get(i);
+            if (col.id().equals(colId)) {
+                colIdx = i;
+                dataTable.columns().remove(colIdx);
+                dataTable.columns().add(colIdx, new Column(DataType.STRING, col.id(), col.label(), col.role(), col.pattern(), col.properties()));
+                break;
+            }
+        }
+
+        if (colIdx == -1) {
+            throw new IllegalArgumentException("GoogleChart:addColumnValuePrefix: column " + colId + " not found in dataTable");
+        }
+
+        for (List<DataCell> row: dataTable.rows()) {
+            DataCell oldCell = row.get(colIdx);
+            row.remove(colIdx);
+            row.add(colIdx, new DataCell(prefix + oldCell.value(), DataType.STRING, oldCell.valueFormat(), oldCell.properties()));
+        }
     }
 
     protected void addOption(String key, Object option) {
