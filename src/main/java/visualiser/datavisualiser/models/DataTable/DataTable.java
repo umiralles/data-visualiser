@@ -106,11 +106,6 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
     public static DataTable getWithLimit(DataTable dataTable, ERModel rm, Relationship rel,
                                          String k1Id, int k1Limit, String k2Id, int k2Limit,
                                          String compareColId, Comparator<? super DataCell> comparator) {
-        if (k1Limit < 0) {
-            // No limit (k2 should not be limited without also limiting k1)
-            return dataTable;
-        }
-
         // sort rows via compareColId
         int compareIdx = -1;
         for (int i = 0; i < dataTable.columns.size(); i++) {
@@ -126,6 +121,11 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
         int finalCompareIdx = compareIdx;
         dataTable.rows.sort((row1, row2) -> comparator.compare(row1.get(finalCompareIdx), row2.get(finalCompareIdx)));
+
+        if (k1Limit < 0) {
+            // No limit (k2 should not be limited without also limiting k1)
+            return dataTable;
+        }
 
         // Just k1 Limit
         if (k2Id == null || k2Limit < 0 || rel == null) {
