@@ -113,11 +113,12 @@ public class GraphSelectController implements Initializable {
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
 
-//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Tree Map");
+//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Choropleth Map");
 //        this.chosenPlan = pls.stream().findFirst().get();
 //        limitOrderChoice.setValue(DESCENDING);
 //        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
-//        updateGraphPlanType(user.getERModel(), user.getGraphDetector());
+//        updateGraphPlanType(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
+//        graphChoice.setValue("Choropleth Map");
     }
 
     @FXML

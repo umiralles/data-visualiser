@@ -6,14 +6,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import visualiser.datavisualiser.View;
 import visualiser.datavisualiser.ViewUtils;
-import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
-import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
 import visualiser.datavisualiser.models.ERModel.ERModel;
 import visualiser.datavisualiser.models.ERModel.Entities.EntityType;
-import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
-import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
-import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
+import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
+import visualiser.datavisualiser.models.GraphDetector.InputAttribute;
 import visualiser.datavisualiser.models.User;
 
 import java.net.URL;
@@ -131,9 +128,9 @@ public class DataDatabaseController implements Initializable {
                 attributes.add(k2);
             }
 
-            GraphDetector gd = GraphDetector.generateBasicPlans(rm, k1, attributes);
+//            GraphDetector gd = GraphDetector.generateBasicPlans(rm, k1, attributes);
 
-            user.setGraphDetector(gd);
+//            user.setGraphDetector(gd);
             ViewUtils.sendData(user);
             ViewUtils.switchTo(View.DATA_VIS);
             return;

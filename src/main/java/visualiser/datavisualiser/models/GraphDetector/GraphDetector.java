@@ -63,80 +63,31 @@ public class GraphDetector {
         this(entity, attributes, plans, null);
     }
 
-    public EntityType getEntity() {
-        return entity;
+    public static GraphDetector generateGraphDetector(VisSchemaPattern pattern,
+                                                ERModel rm, Relationship rel, List<Attribute> as) {
+        return generateGraphDetector(pattern, rm, null, rel, as);
     }
 
-    public Relationship getRelationship() {
-        return relationship;
+    public static GraphDetector generateGraphDetector(VisSchemaPattern pattern,
+                                               ERModel rm, EntityType entity, List<Attribute> as) {
+        return generateGraphDetector(pattern, rm, entity, null, as);
     }
 
-    public Set<Attribute> getAttributes() {
-        return attributes;
+    public static GraphDetector generateGraphDetector(VisSchemaPattern pattern,
+                                               ERModel rm, EntityType entity, Relationship rel, List<Attribute> as) {
+        return switch (pattern) {
+            case BASIC_ENTITY -> generateBasicPlans(rm, entity, as);
+            case WEAK_ENTITY -> generateWeakPlans(rm, (BinaryRelationship) rel, as);
+            case ONE_MANY_REL -> generateOneManyPlans((BinaryRelationship) rel, as);
+            case MANY_MANY_REL, REFLEXIVE -> generateManyManyPlans((NAryRelationship) rel, as);
+        };
     }
 
-    public Map<String, Set<GraphPlan>> getPlans() {
-        return plans;
-    }
-
-    public DataTable getData(ERModel rm, VisSchemaPattern pattern, int lim1, int lim2, String compareAttId,
-                             Comparator<? super DataCell> comparator) throws SQLException {
-        List<PrimaryKey> primaryKeys = new ArrayList<>();
-        if (entity != null) {
-            primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
-        } else if (relationship != null) {
-            primaryKeys.add(relationship.getB().getPrimaryKey());
-            primaryKeys.add(relationship.getA().getPrimaryKey());
-        }
-
-        if (data == null) {
-            if (primaryKeys.isEmpty()) {
-                // TODO: error
-                return null;
-            }
-
-            // make a datatable based on the attributes
-            this.data = loadData(rm, relationship, pattern, new HashSet<>(primaryKeys), attributes);
-        }
-
-        if (primaryKeys.size() == 1) {
-            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, compareAttId, comparator);
-        }
-
-        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
-                primaryKeys.get(1).toString(), lim2, compareAttId, comparator);
-    }
-
-    // kInput: must be a key attribute of the entity
-    // aInputs: all other attributes to be included. Must be part of the entity
-    public static GraphDetector generateBasicPlans(ERModel rm, InputAttribute kInput, List<InputAttribute> aInputs) {
-        String entityName = kInput.table();
-
-        Relation entityRelation = rm.getRelation(entityName);
-        if (entityRelation == null || !entityRelation.isEntityRelation()) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: entity " + entityName + " not found");
-        }
-
-        Attribute k = entityRelation.findInPrimaryKey(kInput.column());
-        if (k == null) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: attribute " + kInput.column()
-                    + " is not a primary attribute of " + entityName);
-        }
-
-        List<String> aNames = aInputs.stream().map(InputAttribute::column).toList();
-        List<Attribute> as = entityRelation.findAttributes(aNames);
-        if (as == null) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: attributes for "
-                    + entityName + " were not found in the relation " + entityRelation.getName());
-        }
-
-        return generateBasicPlans(rm, rm.getEntity(entityName), as);
-    }
-
-    public static GraphDetector generateBasicPlans(ERModel rm, EntityType entity, List<Attribute> as) {
+    private static GraphDetector generateBasicPlans(ERModel rm, EntityType entity, List<Attribute> as) {
         /* Checks for illegal arguments */
         if (as.isEmpty()) {
-            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: not enough attributes specified for entity " + entity.getName());
+            throw new IllegalArgumentException(
+                    "GraphDetector.generateBasicPlans: not enough attributes specified for entity " + entity.getName());
         }
 
         Reflections reflections = new Reflections(BasicGraphPlan.class.getPackageName());
@@ -177,7 +128,7 @@ public class GraphDetector {
         return new GraphDetector(entity, new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateWeakPlans(ERModel rm, BinaryRelationship rel, List<Attribute> as) {
+    private static GraphDetector generateWeakPlans(ERModel rm, BinaryRelationship rel, List<Attribute> as) {
         Reflections reflections = new Reflections(WeakGraphPlan.class.getPackageName());
         Set<Class<? extends WeakGraphPlan>> subClasses = reflections.getSubTypesOf(WeakGraphPlan.class);
 
@@ -230,7 +181,7 @@ public class GraphDetector {
         return new GraphDetector(rel, new HashSet<>(as), plans, data);
     }
 
-    public static GraphDetector generateOneManyPlans(BinaryRelationship rel, List<Attribute> as) {
+    private static GraphDetector generateOneManyPlans(BinaryRelationship rel, List<Attribute> as) {
         Reflections reflections = new Reflections(OneManyGraphPlan.class.getPackageName());
         Set<Class<? extends OneManyGraphPlan>> subClasses = reflections.getSubTypesOf(OneManyGraphPlan.class);
 
@@ -268,7 +219,7 @@ public class GraphDetector {
         return new GraphDetector(rel, new HashSet<>(as), plans);
     }
 
-    public static GraphDetector generateManyManyPlans(NAryRelationship rel, List<Attribute> as) {
+    private static GraphDetector generateManyManyPlans(NAryRelationship rel, List<Attribute> as) {
         /* Checks for illegal arguments */
         if (as.isEmpty()) {
             throw new IllegalArgumentException("GraphDetector.generateManyManyPlans: not enough attributes specified for weak relationship " + rel.getName());
@@ -310,6 +261,76 @@ public class GraphDetector {
         }
 
         return new GraphDetector(rel, new HashSet<>(as), plans);
+    }
+
+    public EntityType getEntity() {
+        return entity;
+    }
+
+    public Relationship getRelationship() {
+        return relationship;
+    }
+
+    public Set<Attribute> getAttributes() {
+        return attributes;
+    }
+
+    public Map<String, Set<GraphPlan>> getPlans() {
+        return plans;
+    }
+
+    public DataTable getData(ERModel rm, VisSchemaPattern pattern, int lim1, int lim2, String compareAttId,
+                             Comparator<? super DataCell> comparator) throws SQLException {
+        List<PrimaryKey> primaryKeys = new ArrayList<>();
+        if (entity != null) {
+            primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
+        } else if (relationship != null) {
+            primaryKeys.add(relationship.getB().getPrimaryKey());
+            primaryKeys.add(relationship.getA().getPrimaryKey());
+        }
+
+        if (data == null) {
+            if (primaryKeys.isEmpty()) {
+                // TODO: error
+                return null;
+            }
+
+            // make a datatable based on the attributes
+            this.data = loadData(rm, relationship, pattern, new HashSet<>(primaryKeys), attributes);
+        }
+
+        if (primaryKeys.size() == 1) {
+            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, compareAttId, comparator);
+        }
+
+        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
+                primaryKeys.get(1).toString(), lim2, compareAttId, comparator);
+    }
+
+    // kInput: must be a key attribute of the entity
+    // aInputs: all other attributes to be included. Must be part of the entity
+    private static GraphDetector generateBasicPlans(ERModel rm, InputAttribute kInput, List<InputAttribute> aInputs) {
+        String entityName = kInput.table();
+
+        Relation entityRelation = rm.getRelation(entityName);
+        if (entityRelation == null || !entityRelation.isEntityRelation()) {
+            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: entity " + entityName + " not found");
+        }
+
+        Attribute k = entityRelation.findInPrimaryKey(kInput.column());
+        if (k == null) {
+            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: attribute " + kInput.column()
+                    + " is not a primary attribute of " + entityName);
+        }
+
+        List<String> aNames = aInputs.stream().map(InputAttribute::column).toList();
+        List<Attribute> as = entityRelation.findAttributes(aNames);
+        if (as == null) {
+            throw new IllegalArgumentException("GraphDetector.generateBasicPlans: attributes for "
+                    + entityName + " were not found in the relation " + entityRelation.getName());
+        }
+
+        return generateBasicPlans(rm, rm.getEntity(entityName), as);
     }
 
     // Data is complete if the same set of values appear for k2 for each instance of k1

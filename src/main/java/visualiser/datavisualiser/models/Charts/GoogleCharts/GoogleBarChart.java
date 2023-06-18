@@ -15,11 +15,16 @@ public class GoogleBarChart extends GoogleChart {
         reOrderData(newOrder);
         addOption("isStacked", true);
 
+        addVAxis(xAxisId);
+
         addTitle("Bar Chart");
     }
 
     public GoogleBarChart(DataTable unorderedData, String xAxisId, String yAxisId) {
         super(unorderedData, List.of(xAxisId, yAxisId));
+
+        addHAxis(yAxisId);
+        addVAxis(xAxisId);
 
         addTitle("Bar Chart");
     }

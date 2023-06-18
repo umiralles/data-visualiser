@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="scene-grid" stylesheets="@../data-vis.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="visualiser.datavisualiser.controllers.DataSelectController">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="scene-grid" stylesheets="@../data-vis.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="visualiser.datavisualiser.controllers.DataSelectController">
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="20.0" prefWidth="100.0" />
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="25.0" prefWidth="100.0" />
@@ -25,7 +29,7 @@
             <Insets left="40.0" />
          </GridPane.margin>
          <children>
-            <Button mnemonicParsing="false" onAction="#onDatabaseButtonClick" prefHeight="36.0" styleClass="scene-menu-button" text="Choose visualisation attributes from database" />
+            <Button disable="true" mnemonicParsing="false" onAction="#onDatabaseButtonClick" prefHeight="36.0" styleClass="scene-menu-button" text="Choose visualisation attributes from database" />
             <Button mnemonicParsing="false" onAction="#onModelButtonClick" prefHeight="36.0" styleClass="scene-menu-button" text="Choose visualisation attributes from model" />
             <Button mnemonicParsing="false" onAction="#onHomeButtonClick" prefHeight="36.0" styleClass="scene-menu-button" text="Go to main menu" />
          </children>

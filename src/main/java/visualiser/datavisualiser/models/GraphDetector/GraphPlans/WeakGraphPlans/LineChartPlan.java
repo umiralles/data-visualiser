@@ -96,6 +96,6 @@ public class LineChartPlan extends WeakGraphPlan {
         List<String> lines = shiftedData.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
         lines.remove(0);
 
-        return new GoogleLineChart(shiftedData, lineValsId, lines);
+        return new GoogleLineChart(shiftedData, lineValsId, linesId, lines);
     }
 }
