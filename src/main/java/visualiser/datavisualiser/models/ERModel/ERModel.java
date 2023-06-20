@@ -78,7 +78,7 @@ public class ERModel {
 //            setEntityTypeAttributes(this.entities, this.relations, this.relationships);
 
         } catch (SQLException e) {
-            System.out.println("SQL Exception in RelationalDatabase: " + e.getMessage());
+            System.out.println("SQL Exception in ERModel: " + e.getMessage());
             throw new IllegalArgumentException(e);
         }
     }
@@ -398,7 +398,7 @@ public class ERModel {
             Optional<PrimaryAttribute> opPKAtt = pk.stream().findFirst();
             if (opPKAtt.isEmpty()) {
                 // TODO: Something is wrong with the database
-                throw new SQLException("RelationalDatabase.collectUntypedRelations: Relation " + table + " has no primary key");
+                throw new SQLException("ERModel.collectUntypedRelations: Relation " + table + " has no primary key");
             }
 
             String pkName = opPKAtt.get().getPKName();
