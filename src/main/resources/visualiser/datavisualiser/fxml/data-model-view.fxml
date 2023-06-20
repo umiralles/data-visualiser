@@ -91,7 +91,7 @@
             <Insets right="10.0" />
          </GridPane.margin>
       </Text>
-      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Additional Attributes to Primary Key:" textAlignment="RIGHT" wrappingWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="10" GridPane.valignment="TOP">
+      <Text strokeType="OUTSIDE" strokeWidth="0.0" styleClass="model-select-text" text="Additional Attributes:" textAlignment="RIGHT" wrappingWidth="200.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="10" GridPane.valignment="TOP">
          <GridPane.margin>
             <Insets right="10.0" />
          </GridPane.margin>

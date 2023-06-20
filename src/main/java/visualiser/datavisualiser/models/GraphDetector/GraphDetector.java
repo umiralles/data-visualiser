@@ -285,8 +285,13 @@ public class GraphDetector {
         if (entity != null) {
             primaryKeys.add(rm.getRelation(entity.getName()).getPrimaryKey());
         } else if (relationship != null) {
-            primaryKeys.add(relationship.getB().getPrimaryKey());
-            primaryKeys.add(relationship.getA().getPrimaryKey());
+            if (relationship instanceof BinaryRelationship) {
+                primaryKeys.add(relationship.getB().getPrimaryKey());
+                primaryKeys.add(relationship.getA().getPrimaryKey());
+            } else {
+                primaryKeys.add(relationship.getA().getPrimaryKey());
+                primaryKeys.add(relationship.getB().getPrimaryKey());
+            }
         }
 
         if (data == null) {

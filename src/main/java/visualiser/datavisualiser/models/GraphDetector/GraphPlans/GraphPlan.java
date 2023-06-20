@@ -76,7 +76,7 @@ public abstract class GraphPlan {
             // Add an empty list to represent optionals for each mandatory order
             possMandOrders.forEach(possMandOrder -> possOrders.add(new ArrayList<>(List.of(possMandOrder, new ArrayList<>()))));
         } else {
-            // Check for optional attributes
+            // Check for isOptional attributes
             for (List<Integer> possMandOrder : possMandOrders) {
                 List<List<Integer>> possOptionals = findMatchingOptionalTypes(optionals, possMandOrder, atts);
 
@@ -114,7 +114,7 @@ public abstract class GraphPlan {
                 Integer attIdx = possOptOrder.get(optTypeIdx);
                 AttributeType optAttType = optionals.get(optTypeIdx);
 
-                // optional indices are nullable
+                // isOptional indices are nullable
                 if (attIdx == null) {
                     possAttsOrder.add(new GraphAttribute(null, optAttType, true));
                     return;
@@ -196,9 +196,7 @@ public abstract class GraphPlan {
             if (areOptional) {
                 // Check that all possible indices are included, and only nulls are duplicated
                 List<Integer> combinationCopy = new ArrayList<>(combination);
-                List<Integer> nullList = new ArrayList<>();
-                nullList.add(null);
-                combinationCopy.removeAll(nullList);
+                combinationCopy.removeAll(Collections.singleton(null));
 
                 Set<Integer> combCopyUniques = new HashSet<>(combinationCopy);
                 if (combinationCopy.size() == combCopyUniques.size()

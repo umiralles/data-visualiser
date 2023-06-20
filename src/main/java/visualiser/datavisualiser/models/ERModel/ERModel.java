@@ -212,15 +212,15 @@ public class ERModel {
 
         } else if (rel instanceof BinaryRelationship binRel) {
             q.append(schemaPattern).append('.').append(binRel.getA().getName()).append('\n');
-            List<List<Attribute>> aToBs = binRel.getA().findSharedAttributes(binRel.getB());
+            List<List<Attribute>> bsToAs = binRel.getB().findAttsExportedTo(binRel.getA());
 
-            q.append(getInnerJoinQuery(binRel.getB().getName(), aToBs.get(0), aToBs.get(1)));
+            q.append(getInnerJoinQuery(binRel.getB().getName(), bsToAs.get(1), bsToAs.get(0)));
 
         } else if (rel instanceof NAryRelationship nAryRel) {
             q.append(schemaPattern).append('.').append(nAryRel.getA().getName()).append('\n');
             Relation relationshipRel = nAryRel.getRelationshipRelation();
-            List<List<Attribute>> aToRels = nAryRel.getA().findSharedAttributes(relationshipRel);
-            List<List<Attribute>> bToRels = nAryRel.getB().findSharedAttributes(relationshipRel);
+            List<List<Attribute>> aToRels = nAryRel.getA().findAttsExportedTo(relationshipRel);
+            List<List<Attribute>> bToRels = nAryRel.getB().findAttsExportedTo(relationshipRel);
 
             q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1))).append('\n');
             q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
@@ -851,6 +851,8 @@ public class ERModel {
 
             for (Relation otherRelation : relations.values()) {
                 if (relation.equals(otherRelation) ||
+                        // Check that it's not an inclusion relationship already
+                        relationships.containsKey(InclusionRelationship.generateName(relation, otherRelation)) ||
                         !(relation.isEntityRelation() && otherRelation.isEntityRelation()) ||
                         !foreignRelationNames.contains(otherRelation.getName())) {
                     continue;

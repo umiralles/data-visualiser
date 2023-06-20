@@ -165,7 +165,7 @@ public class GraphSelectController implements Initializable {
                         .getRelation(gd.getEntity().getName()).getPrimaryKey().getPAttributes());
                 k1AttsText.setText(attsToString(keyAtts));
             }
-            case WEAK_ENTITY, ONE_MANY_REL, MANY_MANY_REL, REFLEXIVE -> {
+            case WEAK_ENTITY, ONE_MANY_REL -> {
                 List<Attribute> k1Atts = new ArrayList<>(gd.getRelationship().getB().getPrimaryKeySet());
                 List<Attribute> k2Atts = new ArrayList<>(gd.getRelationship().getA().getPrimaryKeySet());
 
@@ -174,6 +174,12 @@ public class GraphSelectController implements Initializable {
                     k2Atts.removeAll(sharedPAtts.get(1));
                 }
 
+                k1AttsText.setText(attsToString(k1Atts));
+                k2AttsText.setText(attsToString(k2Atts));
+            }
+            case MANY_MANY_REL, REFLEXIVE -> {
+                List<Attribute> k1Atts = new ArrayList<>(gd.getRelationship().getA().getPrimaryKeySet());
+                List<Attribute> k2Atts = new ArrayList<>(gd.getRelationship().getB().getPrimaryKeySet());
                 k1AttsText.setText(attsToString(k1Atts));
                 k2AttsText.setText(attsToString(k2Atts));
             }
@@ -289,7 +295,7 @@ public class GraphSelectController implements Initializable {
                     possAtts.add(plan.getAllOrderedAttributes().get(typeIdx).attribute());
                 }
 
-                if (gAtt.optional()) {
+                if (gAtt.isOptional()) {
                     dupChoice.getItems().add(NOT_SELECTED);
                     possAtts.remove(null);
                 }
@@ -310,7 +316,7 @@ public class GraphSelectController implements Initializable {
 
                 typeBox.getChildren().add(1, dupChoice);
 
-            } else if (child instanceof Text asterisk && asterisk.getText().equals("*") && !gAtt.optional()) {
+            } else if (child instanceof Text asterisk && asterisk.getText().equals("*") && !gAtt.isOptional()) {
                 Text dupAsterisk = new Text("*");
                 HBox.setMargin(dupAsterisk, HBox.getMargin(asterisk));
 
@@ -403,7 +409,7 @@ public class GraphSelectController implements Initializable {
 
             if (att == null) {
                 possiblePlans = possiblePlans.stream()
-                        .filter(plan -> plan.getAllOrderedAttributes().get(typeIdx).optional())
+                        .filter(plan -> plan.getAllOrderedAttributes().get(typeIdx).isOptional())
                         .toList();
                 continue;
             }

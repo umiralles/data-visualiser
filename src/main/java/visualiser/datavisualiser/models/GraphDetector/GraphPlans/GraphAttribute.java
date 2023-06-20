@@ -5,13 +5,13 @@ import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 
 import java.util.Objects;
 
-public record GraphAttribute(Attribute attribute, AttributeType typeInGraph, boolean optional) {
+public record GraphAttribute(Attribute attribute, AttributeType typeInGraph, boolean isOptional) {
     // attribute:    The attribute for the graph
     // typeInGraph:  The chosen type as a part of the graph
-    // optional:     True if the type is optional for the graph
+    // isOptional:     True if the type is isOptional for the graph
     public GraphAttribute {
         // Optional GraphAttributes can be null
-        if (!optional) {
+        if (!isOptional) {
             Objects.requireNonNull(attribute);
         }
         Objects.requireNonNull(typeInGraph);
