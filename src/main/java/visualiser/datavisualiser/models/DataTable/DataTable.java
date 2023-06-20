@@ -228,12 +228,11 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
             k1Vals.add(row.get(k1Idx).value());
         }
 
-        if (k1Vals.size() < k1Limit) {
-            // Already under limit
-            return dataTable;
+        Set<String> allowedK1s = new LinkedHashSet<>(k1Vals);
+        if (k1Limit != -1 && k1Vals.size() > k1Limit) {
+            allowedK1s = new LinkedHashSet<>(allowedK1s.stream().toList().subList(0, k1Limit));
         }
 
-        Set<String> allowedK1s = new LinkedHashSet<>(k1Vals.stream().toList().subList(0, k1Limit));
         List<List<DataCell>> newRows = new ArrayList<>();
         for (List<DataCell> oldRow : dataTable.rows) {
             if (allowedK1s.contains(oldRow.get(k1Idx).value())) {
