@@ -305,10 +305,10 @@ public class GraphDetector {
         }
 
         if (primaryKeys.size() == 1) {
-            return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1, compareAttId, comparator);
+            return DataTable.getWithLimit(data, pattern, primaryKeys.get(0).toString(), lim1, compareAttId, comparator);
         }
 
-        return DataTable.getWithLimit(data, rm, relationship, primaryKeys.get(0).toString(), lim1,
+        return DataTable.getWithLimit(data, pattern, primaryKeys.get(0).toString(), lim1,
                 primaryKeys.get(1).toString(), lim2, compareAttId, comparator);
     }
 

@@ -2,9 +2,7 @@ package visualiser.datavisualiser.models.DataTable;
 
 
 import javafx.scene.paint.Color;
-import visualiser.datavisualiser.models.ERModel.ERModel;
-import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
-import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
+import visualiser.datavisualiser.models.GraphDetector.VisSchemaPattern;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -98,12 +96,12 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         return new DataTable(newColumns, newRows);
     }
 
-    public static DataTable getWithLimit(DataTable dataTable, ERModel rm, Relationship rel, String k1Id, int k1Limit,
+    public static DataTable getWithLimit(DataTable dataTable, VisSchemaPattern pattern, String k1Id, int k1Limit,
                                          String compareColId, Comparator<? super DataCell> comparator) {
-        return getWithLimit(dataTable, rm, rel, k1Id, k1Limit, null, -1, compareColId, comparator);
+        return getWithLimit(dataTable, pattern, k1Id, k1Limit, null, -1, compareColId, comparator);
     }
 
-    public static DataTable getWithLimit(DataTable dataTable, ERModel rm, Relationship rel,
+    public static DataTable getWithLimit(DataTable dataTable, VisSchemaPattern pattern,
                                          String k1Id, int k1Limit, String k2Id, int k2Limit,
                                          String compareColId, Comparator<? super DataCell> comparator) {
         // sort rows via compareColId
@@ -122,48 +120,18 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         int finalCompareIdx = compareIdx;
         dataTable.rows.sort((row1, row2) -> comparator.compare(row1.get(finalCompareIdx), row2.get(finalCompareIdx)));
 
-        if (k1Limit < 0) {
-            // No limit (k2 should not be limited without also limiting k1)
-            return dataTable;
-        }
-
         // Just k1 Limit
-        if (k2Id == null || k2Limit < 0 || rel == null) {
-            if (dataTable.rows.size() < k1Limit) {
-                // Already under limit
-                return dataTable;
-            }
-
-            Optional<Column> k1Col = dataTable.columns.stream().dropWhile(col -> !col.id().equals(k1Id)).findFirst();
-            if (k1Col.isEmpty()) {
-                // error
-                System.out.println("Tried to limit with incorrect ids: " + k1Id);
-                return null;
-            }
-
-            int k1Idx = dataTable.columns.indexOf(k1Col.get());
-            Set<String> k1Vals = new LinkedHashSet<>();
-            for (List<DataCell> row : dataTable.rows) {
-                k1Vals.add(row.get(k1Idx).value());
-            }
-
-            if (k1Vals.size() < k1Limit) {
-                // Already under limit
-                return dataTable;
-            }
-
-            Set<String> allowedK1s = new LinkedHashSet<>(k1Vals.stream().toList().subList(0, k1Limit));
-            List<List<DataCell>> newRows = new ArrayList<>();
-            for (List<DataCell> oldRow : dataTable.rows) {
-                if (allowedK1s.contains(oldRow.get(k1Idx).value())) {
-                    newRows.add(new ArrayList<>(oldRow));
-                }
-            }
-
-            return new DataTable(dataTable.columns, newRows);
+        if (pattern == VisSchemaPattern.BASIC_ENTITY || k2Id == null || k2Limit < 0 ) {
+            return getWithOneLimit(dataTable, k1Id, k1Limit);
         }
 
-        // Find indexes
+        // Just k2 limit
+        if ((pattern == VisSchemaPattern.MANY_MANY_REL || pattern == VisSchemaPattern.REFLEXIVE)
+                && (k1Id == null || k1Limit < 0)) {
+            return getWithOneLimit(dataTable, k2Id, k2Limit);
+        }
+
+        // With both k1 and k2 limits
         int k1Idx = -1;
         int k2Idx = -1;
         for (int i  = 0; i < dataTable.columns.size(); i++) {
@@ -182,7 +150,6 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
         // Collect values
         Map<String, Set<String>> k1ToK2s = new LinkedHashMap<>();
-        Set<String> allK2Vals = new LinkedHashSet<>();
         for (List<DataCell> row : dataTable.rows) {
             String k1Val = row.get(k1Idx).value();
             String k2Val = row.get(k2Idx).value();
@@ -192,23 +159,22 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
             }
 
             k1ToK2s.get(k1Val).add(k2Val);
-            allK2Vals.add(k2Val);
         }
 
-        // Find which rows to keep
+        // Limit k1s (parents)
         Set<String> k1sToKeep = k1ToK2s.keySet();
         if (k1ToK2s.keySet().size() >= k1Limit) {
             k1sToKeep = new LinkedHashSet<>(k1ToK2s.keySet().stream().toList().subList(0, k1Limit));
         }
 
         List<List<DataCell>> newRows = new ArrayList<>();
-        if ((rel instanceof BinaryRelationship) && !((BinaryRelationship) rel).isWeakRelationship(rm)) {
-            // OneMany relationship
+        if (pattern == VisSchemaPattern.ONE_MANY_REL) {
+            // OneMany relationship: keep lim1 k1s and lim2 k2s for each k1
             Map<String, Set<String>> k1ToK2sToKeep = new LinkedHashMap<>();
             for (String k1 : k1sToKeep) {
                 Set<String> k2sSet = k1ToK2s.get(k1);
                 if (k2sSet.size() > k2Limit) {
-                    k2sSet =new HashSet<>(k2sSet.stream().toList().subList(0, k2Limit));
+                    k2sSet = new HashSet<>(k2sSet.stream().toList().subList(0, k2Limit));
                 }
 
                 k1ToK2sToKeep.put(k1, k2sSet);
@@ -225,17 +191,16 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
             }
 
         } else {
-            // All other relationships
-            Set<String> k2sToKeep = allK2Vals;
-            if (k2sToKeep.size() >= k2Limit) {
-                k2sToKeep = new LinkedHashSet<>(allK2Vals.stream().toList().subList(0, k2Limit));
-            }
-
+            // All other patterns: keep lim1 k1s and lim2 k2s
+            Set<String> k2sToKeep = new HashSet<>();
             for (List<DataCell> row : dataTable.rows) {
                 String rowK1 = row.get(k1Idx).value();
                 String rowK2 = row.get(k2Idx).value();
 
-                if (k1sToKeep.contains(rowK1) && k2sToKeep.contains(rowK2)) {
+                if (k1sToKeep.contains(rowK1) && k2sToKeep.size() < k2Limit) {
+                    newRows.add(new ArrayList<>(row));
+                    k2sToKeep.add(rowK2);
+                } else if (k1sToKeep.contains(rowK1) && k2sToKeep.contains(rowK2)) {
                     newRows.add(new ArrayList<>(row));
                 }
             }
@@ -244,21 +209,40 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         return new DataTable(new ArrayList<>(dataTable.columns), newRows);
     }
 
-//    public static DataTable getWithReplacedColumnData(DataTable dataTable, String oldColumnId, Column newColumn) {
-//        List<Column> newCols = new ArrayList<>(dataTable.columns);
-//        Optional<Column> oldCol = newCols.stream().dropWhile(col -> !col.id().equals(oldColumnId)).findFirst();
-//
-//        if (oldCol.isEmpty()) {
-//            // TODO: error
-//            return null;
-//        }
-//
-//        int oldIdx = newCols.indexOf(oldCol.get());
-//        newCols.remove(oldIdx);
-//        newCols.add(oldIdx, newColumn);
-//
-//        return new DataTable(newCols, dataTable.rows);
-//    }
+    private static DataTable getWithOneLimit(DataTable dataTable, String k1Id, int k1Limit) {
+        if (dataTable.rows.size() < k1Limit) {
+            // Already under limit
+            return dataTable;
+        }
+
+        Optional<Column> k1Col = dataTable.columns.stream().dropWhile(col -> !col.id().equals(k1Id)).findFirst();
+        if (k1Col.isEmpty()) {
+            // error
+            System.out.println("Tried to limit with incorrect ids: " + k1Id);
+            return null;
+        }
+
+        int k1Idx = dataTable.columns.indexOf(k1Col.get());
+        Set<String> k1Vals = new LinkedHashSet<>();
+        for (List<DataCell> row : dataTable.rows) {
+            k1Vals.add(row.get(k1Idx).value());
+        }
+
+        if (k1Vals.size() < k1Limit) {
+            // Already under limit
+            return dataTable;
+        }
+
+        Set<String> allowedK1s = new LinkedHashSet<>(k1Vals.stream().toList().subList(0, k1Limit));
+        List<List<DataCell>> newRows = new ArrayList<>();
+        for (List<DataCell> oldRow : dataTable.rows) {
+            if (allowedK1s.contains(oldRow.get(k1Idx).value())) {
+                newRows.add(new ArrayList<>(oldRow));
+            }
+        }
+
+        return new DataTable(dataTable.columns, newRows);
+    }
 
     public List<String> getHexColoursFromId(String id, Color startColour, Color endColour) {
         List<String> ids = columns.stream().map(Column::id).toList();
