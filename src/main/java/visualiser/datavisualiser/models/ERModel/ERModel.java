@@ -38,11 +38,6 @@ public class ERModel {
     private final HashMap<String, Relation> relations;
     private final HashMap<String, InclusionDependency> ids;
 
-    // TODO: remove
-    public HashMap<String, InclusionDependency> getIds() {
-        return ids;
-    }
-
     public ERModel(String username, String password, String url, String schemaPattern, ArrayList<String> entityRelations) {
         this.username = username;
         this.password = password;
@@ -84,7 +79,7 @@ public class ERModel {
 
         } catch (SQLException e) {
             System.out.println("SQL Exception in RelationalDatabase: " + e.getMessage());
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException(e);
         }
     }
 
