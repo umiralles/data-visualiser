@@ -1,22 +1,30 @@
 <component name="ArtifactManager">
-  <artifact name="data-visualiser:jar">
-    <output-path>$PROJECT_DIR$/out</output-path>
-    <root id="root">
-      <element id="archive" name="data-visualiser.jar">
-        <element id="module-output" name="data-visualiser" />
-      </element>
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-base:linux:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:linux:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.controlsfx:controlsfx:11.1.2" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:20-ea+4" />
-      <element id="library" level="project" name="Maven: com.dlsc.formsfx:formsfx-core:11.5.0" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-graphics:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-controls:linux:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-base:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.openjfx:javafx-fxml:linux:20-ea+4" />
-      <element id="library" level="project" name="Maven: org.kordamp.ikonli:ikonli-javafx:12.3.1" />
-      <element id="library" level="project" name="Maven: org.kordamp.ikonli:ikonli-core:12.3.1" />
+  <artifact type="jar" name="data-visualiser:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/data_visualiser_jar</output-path>
+    <root id="archive" name="data-visualiser.jar">
+      <element id="module-output" name="data-visualiser" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/kordamp/ikonli/ikonli-core/12.3.1/ikonli-core-12.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/postgresql/postgresql/42.5.3/postgresql-42.5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/20-ea+4/javafx-fxml-20-ea+4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/20-ea+4/javafx-graphics-20-ea+4-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/kordamp/ikonli/ikonli-javafx/12.3.1/ikonli-javafx-12.3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-web/19/javafx-web-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/controlsfx/controlsfx/11.1.2/controlsfx-11.1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-media/19/javafx-media-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/20-ea+4/javafx-controls-20-ea+4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/20-ea+4/javafx-graphics-20-ea+4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/20-ea+4/javafx-base-20-ea+4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/20-ea+4/javafx-fxml-20-ea+4-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/javassist/javassist/3.28.0-GA/javassist-3.28.0-GA.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-media/19/javafx-media-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/json/json/20230227/json-20230227.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/20-ea+4/javafx-base-20-ea+4-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/reflections/reflections/0.10.2/reflections-0.10.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-web/19/javafx-web-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/20-ea+4/javafx-controls-20-ea+4-linux.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
