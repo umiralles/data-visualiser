@@ -104,39 +104,26 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
                                          String k1Id, int k1Limit, String k2Id, int k2Limit,
                                          String compareColId, Comparator<? super DataCell> comparator) {
         // sort rows via compareColId
-        int compareIdx = -1;
-        for (int i = 0; i < dataTable.columns.size(); i++) {
-            if (dataTable.columns.get(i).id().equals(compareColId)) {
-                compareIdx = i;
-                break;
-            }
-        }
-
-        if (compareIdx == -1) {
-            throw new IllegalArgumentException("DataTable.getWithLimit: incorrect compareColId " + compareColId);
-        }
-
-        int finalCompareIdx = compareIdx;
-        dataTable.rows.sort((row1, row2) -> comparator.compare(row1.get(finalCompareIdx), row2.get(finalCompareIdx)));
+        DataTable sortedTable = DataTable.sortRows(dataTable, compareColId, comparator);
 
         // Just k1 Limit
         if (pattern == VisSchemaPattern.BASIC_ENTITY || k2Id == null || k2Limit < 0 ) {
-            return getWithOneLimit(dataTable, k1Id, k1Limit);
+            return getWithOneLimit(sortedTable, k1Id, k1Limit);
         }
 
         // Just k2 limit
         if ((pattern == VisSchemaPattern.MANY_MANY_REL || pattern == VisSchemaPattern.REFLEXIVE)
                 && (k1Id == null || k1Limit < 0)) {
-            return getWithOneLimit(dataTable, k2Id, k2Limit);
+            return getWithOneLimit(sortedTable, k2Id, k2Limit);
         }
 
         // With both k1 and k2 limits
         int k1Idx = -1;
         int k2Idx = -1;
-        for (int i  = 0; i < dataTable.columns.size(); i++) {
-            if (dataTable.columns.get(i).id().equals(k1Id)) {
+        for (int i  = 0; i < sortedTable.columns.size(); i++) {
+            if (sortedTable.columns.get(i).id().equals(k1Id)) {
                 k1Idx = i;
-            } else if (dataTable.columns.get(i).id().equals(k2Id)) {
+            } else if (sortedTable.columns.get(i).id().equals(k2Id)) {
                 k2Idx = i;
             }
         }
@@ -149,7 +136,7 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
         // Collect values
         Map<String, Set<String>> k1ToK2s = new LinkedHashMap<>();
-        for (List<DataCell> row : dataTable.rows) {
+        for (List<DataCell> row : sortedTable.rows) {
             String k1Val = row.get(k1Idx).value();
             String k2Val = row.get(k2Idx).value();
 
@@ -179,7 +166,7 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
                 k1ToK2sToKeep.put(k1, k2sSet);
             }
 
-            for (List<DataCell> row : dataTable.rows) {
+            for (List<DataCell> row : sortedTable.rows) {
                 String rowK1 = row.get(k1Idx).value();
                 String rowK2 = row.get(k2Idx).value();
 
@@ -192,7 +179,7 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         } else {
             // All other patterns: keep lim1 k1s and lim2 k2s
             Set<String> k2sToKeep = new HashSet<>();
-            for (List<DataCell> row : dataTable.rows) {
+            for (List<DataCell> row : sortedTable.rows) {
                 String rowK1 = row.get(k1Idx).value();
                 String rowK2 = row.get(k2Idx).value();
 
@@ -205,7 +192,7 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
             }
         }
 
-        return new DataTable(new ArrayList<>(dataTable.columns), newRows);
+        return new DataTable(new ArrayList<>(sortedTable.columns), newRows);
     }
 
     private static DataTable getWithOneLimit(DataTable dataTable, String k1Id, int k1Limit) {
@@ -240,6 +227,27 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         }
 
         return new DataTable(dataTable.columns, newRows);
+    }
+
+    public static DataTable sortRows(DataTable dataTable, String compareColId, Comparator<? super DataCell> comparator) {
+        List<List<DataCell>> rows = new ArrayList<>(dataTable.rows);
+
+        int compareIdx = -1;
+        for (int i = 0; i < dataTable.columns.size(); i++) {
+            if (dataTable.columns.get(i).id().equals(compareColId)) {
+                compareIdx = i;
+                break;
+            }
+        }
+
+        if (compareIdx == -1) {
+            throw new IllegalArgumentException("DataTable.getWithLimit: incorrect compareColId " + compareColId);
+        }
+
+        int finalCompareIdx = compareIdx;
+        rows.sort((row1, row2) -> comparator.compare(row1.get(finalCompareIdx), row2.get(finalCompareIdx)));
+
+        return new DataTable(dataTable.columns, rows);
     }
 
     public List<String> getHexColoursFromId(String id, Color startColour, Color endColour) {

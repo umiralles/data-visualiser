@@ -100,7 +100,7 @@
                   <Insets right="10.0" />
                </HBox.margin>
             </Button>
-            <Button mnemonicParsing="false" onAction="#onHomeButtonClick" text="Go Home">
+            <Button minWidth="70.0" mnemonicParsing="false" onAction="#onHomeButtonClick" text="Log Off">
                <HBox.margin>
                   <Insets right="40.0" />
                </HBox.margin>

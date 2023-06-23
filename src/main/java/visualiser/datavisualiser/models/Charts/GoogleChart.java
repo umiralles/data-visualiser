@@ -192,6 +192,10 @@ public abstract class GoogleChart implements Chart {
         return false;
     }
 
+    protected void sortViaColumn(String sortId, Comparator<? super DataCell> comparator) {
+        this.dataTable = DataTable.sortRows(dataTable, sortId, comparator);
+    }
+
     // Adds a new column where every value is the value of 'constant' and the column id is 'newColId'
     protected void addConstantColumn(String newColId, String label, int constant) {
         Column newCol = new Column(DataType.INT, newColId, label);

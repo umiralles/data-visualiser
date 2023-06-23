@@ -4,6 +4,7 @@ import visualiser.datavisualiser.models.Charts.GoogleChart;
 import visualiser.datavisualiser.models.DataTable.DataTable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class GoogleLineChart extends GoogleChart {
@@ -13,6 +14,8 @@ public class GoogleLineChart extends GoogleChart {
         List<String> newOrder = new ArrayList<>(List.of(xAxis));
         newOrder.addAll(yAxes);
         reOrderData(newOrder);
+
+        sortViaColumn(xAxis, Comparator.naturalOrder());
 
         addOption("interpolateNulls", true);
         addOption("pointShape", "circle");

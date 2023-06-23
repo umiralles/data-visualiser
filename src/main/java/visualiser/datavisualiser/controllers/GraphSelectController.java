@@ -100,6 +100,14 @@ public class GraphSelectController implements Initializable {
     @FXML
     public void onHomeButtonClick() {
         /* Reset user */
+        User user = ViewUtils.receiveData();
+
+        try {
+            user.getERModel().closeConnection();
+        } catch (SQLException e) {
+            // Do nothing if already closed.
+        }
+
         ViewUtils.sendData(new User());
         ViewUtils.switchTo(View.HOME);
     }
@@ -112,13 +120,6 @@ public class GraphSelectController implements Initializable {
         user.setRelationship(null);
         ViewUtils.sendData(user);
         ViewUtils.switchTo(View.DATA_CHOOSE_MODEL);
-
-//        Set<GraphPlan> pls = user.getGraphDetector().getPlans().get("Choropleth Map");
-//        this.chosenPlan = pls.stream().findFirst().get();
-//        limitOrderChoice.setValue(DESCENDING);
-//        reDisplayChosenPlan(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
-//        updateGraphPlanType(user.getERModel(), user.getGraphDetector(), user.getVisSchemaPattern());
-//        graphChoice.setValue("Choropleth Map");
     }
 
     @FXML

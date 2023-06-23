@@ -136,6 +136,10 @@ public class ERModel {
         return relations.get(name);
     }
 
+    public void closeConnection() throws SQLException {
+        conn.close();
+    }
+
     public DataTable getDataTableWithAttributes(Relationship rel, VisSchemaPattern pattern,
                                                 Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
         List<PrimaryKey> pksList = new ArrayList<>(pks);
