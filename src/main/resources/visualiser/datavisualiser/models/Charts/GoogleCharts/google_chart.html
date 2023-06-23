@@ -31,11 +31,8 @@
       function drawChart(jsonString) {
 
         var json = JSON.parse(jsonString);
-        
-        // TODO: Remove console.log
-        console.log(json);
 
-        // Change dates to javascript Date objects (untested)
+        // Change dates to javascript Date objects
         for (let i = 0; i < json.data_table.cols.length; i++) {
           if (json.data_table.cols[i].type === 'date') {
             for (let j = 0; j < json.data_table.rows.length; j) {

@@ -14,25 +14,8 @@ public abstract class GraphPlan {
 
     public abstract List<GraphAttribute> getAllOrderedAttributes();
 
-//      TODO: make abstract again
-//    public abstract Chart getChart(DataTable dataTable);
-
+    // To be overridden to apply a visualisation implementation
     public Chart getChart(DataTable dataTable) {
-//        System.out.println("tried to print chart " + getClass().getName() + " " + getName());
-//
-//        if (getAllOrderedAttributes().isEmpty()) {
-//            return null;
-//        }
-//
-//        System.out.print(" with atts:");
-//        for (GraphAttribute att : getAllOrderedAttributes()) {
-//            if (att == null) {
-//                continue;
-//            }
-//
-//            System.out.println(att.attribute().toString());
-//        }
-
         return null;
     }
 

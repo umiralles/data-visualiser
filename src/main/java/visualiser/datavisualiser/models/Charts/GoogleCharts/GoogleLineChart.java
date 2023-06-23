@@ -18,8 +18,6 @@ public class GoogleLineChart extends GoogleChart {
         addOption("pointShape", "circle");
         addOption("pointSize", 4);
 
-        // TODO: v axes title?
-
         addTitle("Line Chart");
     }
 

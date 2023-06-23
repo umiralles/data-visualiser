@@ -18,7 +18,6 @@ public class PrimaryAttribute extends Attribute {
     //  names, tables and columns should always be the same length
     private final HashSet<ForeignAttribute> fAttributes;
 
-    // TODO: Make it so that fAttributes are added to constructor if possible (i.e. remove addInstance)
     public PrimaryAttribute(String name, String table, String column, DBType type, HashSet<ForeignAttribute> fAttributes,
                             String impKeyName, Attribute impAttribute) {
 //        this.type = type;

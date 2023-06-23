@@ -2,9 +2,9 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlan
 
 import visualiser.datavisualiser.models.Charts.Chart;
 import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleBubbleChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;

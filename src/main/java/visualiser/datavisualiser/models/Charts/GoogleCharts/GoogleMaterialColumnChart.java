@@ -16,15 +16,6 @@ public class GoogleMaterialColumnChart extends GoogleChart {
         reOrderData(newOrder);
 
         addOption("chart", new JSONObject().put("title", "Column Chart"));
-        // TODO: bruh
-//        addHAxis(xAxisId);
-//        JSONObject vAxes = new JSONObject().put("title", "year");
-//
-//        for (int i = 0; i < yAxisIds.size(); i++) {
-//            vAxes.put(String.valueOf(i + 1), new JSONObject().put("title", yAxisIds.get(i)));
-//        }
-//
-//        addOption("vAxis", vAxes);
     }
 
     // Used directly for google_chart.html to determine the correct function to use when generating graph

@@ -199,7 +199,6 @@ public class DataModelController implements Initializable {
 
             /* Add E2 choices */
             for (EntityType e2 : entities) {
-                // TODO: could time save
                 if (!checkForRelationships(rm, selectedE1, e2).isEmpty()) {
                     entity2Choice.getItems().add(e2.getName());
                 }
@@ -298,7 +297,7 @@ public class DataModelController implements Initializable {
             }
 
             /* Add appropriate attributes to addAttributes ChoiceBox */
-            // TODO: also add inclusion relationship attributes?
+            // TODO: Add Inclusion Relationships attributes here
             if (currVisPattern == VisSchemaPattern.BASIC_ENTITY) {
                 addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
             } else if (currVisPattern == VisSchemaPattern.ONE_MANY_REL
@@ -306,7 +305,7 @@ public class DataModelController implements Initializable {
                 // Add attributes for child relation (A)
                 addRelationToAttributesVBox(currRelationship.getA());
             } else {
-                // Many Many or Reflexive
+                // Many-Many or Reflexive
                 addRelationToAttributesVBox(((NAryRelationship) currRelationship).getRelationshipRelation());
             }
 
@@ -434,7 +433,6 @@ public class DataModelController implements Initializable {
         Relation e1Rel = rm.getRelation(e1.getName());
         Relation e2Rel = rm.getRelation(e2.getName());
 
-        // TODO: also check for relationships which have an inclusion 1-1 relationship
         List<Relationship> relationships = new ArrayList<>();
 
         // Check weak or binary relationship

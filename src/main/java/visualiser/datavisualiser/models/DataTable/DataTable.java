@@ -11,10 +11,9 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
 
     public DataTable {
         // Check each row has the correct length and type
-        // TODO: needs error message
         for (List<DataCell> row : rows) {
             if (row.size() != columns.size()) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("DataTable: row and column size do not match for row " + row);
             }
 
             for (int i = 0; i < row.size(); i++) {
@@ -22,7 +21,8 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
                 Column column = columns.get(i);
 
                 if (!rowCell.type().equals(column.type())) {
-                    throw new IllegalArgumentException();
+                    throw new IllegalArgumentException("DataTable: row cell " + rowCell +
+                            " does not match column type " + column.type() + " for column " + column);
                 }
             }
         }
@@ -37,7 +37,6 @@ public record DataTable(List<Column> columns, List<List<DataCell>> rows) {
         Set<String> cols = dataTable.columns.stream().map(Column::id).collect(Collectors.toSet());
 
         if (!cols.containsAll(ids)) {
-            // TODO: error
             System.out.println("Tried to reorder columns with incorrect ids. columnIds: ");
             cols.forEach(col -> System.out.print(col + " "));
             System.out.print("newIds: ");

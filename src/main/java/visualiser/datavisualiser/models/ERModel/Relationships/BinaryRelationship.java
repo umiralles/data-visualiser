@@ -31,7 +31,6 @@ public class BinaryRelationship extends Relationship {
         this(ids.get(0).getA(), ids.stream().map(InclusionDependency::getX1).toList(),
                 ids.get(0).getB(), ids.stream().map(InclusionDependency::getX2).toList(),
                 ids.stream().allMatch(InclusionDependency::isCovered));
-        // TODO: All ids should be for the same relations, ids must contain at least one item
     }
 
     public BinaryRelationship(BinaryRelationship rel, InclusionDependency id) {

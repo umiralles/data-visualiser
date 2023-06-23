@@ -62,16 +62,6 @@ public class DataDatabaseController implements Initializable {
 
     @FXML
     protected void onGenerateButtonClick() {
-        // TODO: Remove this (for testing basic entity)
-        if (k1TableField.getText().isBlank()) {
-            k1TableField.setText("city");
-            k1AttField.setText("name");
-            att1TableField.setText("city");
-            att1NameField.setText("elevation");
-            att2TableField.setText("city");
-            att2NameField.setText("longitude");
-        }
-
         String k1Table = k1TableField.getText();
         String k1Att = k1AttField.getText();
         if (k1Table.isBlank() || k1Att.isBlank()) {
@@ -139,13 +129,12 @@ public class DataDatabaseController implements Initializable {
         EntityType k1Ent = rm.getEntity(k1.table());
         EntityType k2Ent = rm.getEntity(k2.table());
 
-        // TODO: idk man this is weird. if k1Ent and k2Ent aren't null these shouldn't be either
         Relation k1Rel = rm.getRelation(k1.table());
         Relation k2Rel = rm.getRelation(k2.table());
 
         if (k1Ent == null || k2Ent == null || k1Rel == null || k2Rel == null) {
-            // TODO: error (can only be weak, one many or many many relationship from here)
-            return;
+            // error (can only be weak, one many or many-many relationship from here)
+            throw new IllegalArgumentException();
         }
 
         /* WEAK ENTITY GRAPH */
@@ -162,14 +151,13 @@ public class DataDatabaseController implements Initializable {
 //        BinaryRelationship br = rm.getBinaryRelationship(k2, k1);
 //        if (br != null) {
 //            GraphDetector gd = GraphDetector.generateOneManyPlans(rm, k1, k2, attributes);
-//            // TODO: could also be a weak entity relationship gd?
+//            // could also be a weak entity relationship gd?
 //            user.setGraphDetector(gd);
 //        }
 
         /* MANY MANY GRAPH */
 //        Relation attRel = rm.getRelation(attTable);
 //        if (attRel != null) {
-//            // TODO: this is bad
 //            NAryRelationship nAry = (NAryRelationship) rm.getRelationships().values().stream()
 //                    .filter(rel -> rel instanceof NAryRelationship && ((NAryRelationship) rel).getRelationshipName().equals(attRel.getName()))
 //                    .findFirst().orElse(null);

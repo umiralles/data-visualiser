@@ -79,18 +79,6 @@ public abstract class ManyManyGraphPlan extends GraphPlan {
     public abstract List<AttributeType> getMandatories();
     public abstract List<AttributeType> getOptionals();
 
-    // TODO: add reflexive stuff
-//    public Set<GraphPlan> fitAttributesToPlan(Attribute k1Att, Attribute k2Att, List<Attribute> unorderedAtts) {
-//        Set<GraphPlan> plans = new HashSet<>();
-//        List<List<Attribute>> possibleOrders = orderAttributesByType(k1Att, k2Att, unorderedAtts);
-//
-//        for (List<Attribute> possibleOrder : possibleOrders) {
-//            plans.add(getInstance(k1Att, k2Att, possibleOrder));
-//        }
-//
-//        return plans;
-//    }
-
     public boolean fitKTypes(PrimaryKey k1, PrimaryKey k2) {
         Set<PrimaryAttribute> k1Atts = k1.getPAttributes();
         Set<PrimaryAttribute> k2Atts = k2.getPAttributes();

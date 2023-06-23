@@ -133,8 +133,7 @@ public class GraphSelectController implements Initializable {
 
         GraphDetector gd = user.getGraphDetector();
         if (gd == null) {
-            // TODO: error
-            return;
+            throw new IllegalArgumentException("GraphSelectController.initialize: No GraphDetector transferred.");
         }
 
         /* LIMITS */

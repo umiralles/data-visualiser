@@ -86,18 +86,6 @@ public abstract class WeakGraphPlan extends GraphPlan {
     public abstract List<AttributeType> getMandatories();
     public abstract List<AttributeType> getOptionals();
 
-//    // TODO: add complete stuff
-//    public Set<GraphPlan> fitAttributesToPlan(Attribute k1Att, Attribute k2Att, List<Attribute> unorderedAtts) {
-//        Set<GraphPlan> plans = new HashSet<>();
-//        List<List<Attribute>> possibleOrders = orderAttributesByType(k1Att, k2Att, unorderedAtts);
-//
-//        for (List<Attribute> possibleOrder : possibleOrders) {
-//            plans.add(getInstance(k1Att, k2Att, possibleOrder));
-//        }
-//
-//        return plans;
-//    }
-
     public boolean fitKTypes(PrimaryKey k1, PrimaryKey k2) {
         Set<PrimaryAttribute> k1Atts = new HashSet<>(k1.getPAttributes());
         Set<PrimaryAttribute> k2Atts = new HashSet<>(k2.getPAttributes());

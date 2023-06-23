@@ -33,27 +33,22 @@ public class ERModel {
     private final String url;
     private final Connection conn;
     private final DatabaseMetaData md;
-    private final ArrayList<String> entityRelations;
     private final ArrayList<String> tableNames;
     private final HashMap<String, Relation> relations;
     private final HashMap<String, InclusionDependency> ids;
 
-    public ERModel(String username, String password, String url, String schemaPattern, ArrayList<String> entityRelations) {
+    public ERModel(String username, String password, String url, String schemaPattern,
+                   ArrayList<String> entityRelations) {
         this.username = username;
         this.password = password;
         this.url = url;
         this.catalog = url.substring(url.lastIndexOf('/') + 1);
         this.schemaPattern = schemaPattern;
-        this.entityRelations = entityRelations;
 
         try {
-//            String url = "jdbc:postgresql://localhost/" + catalog;
             Properties props = new Properties();
             props.setProperty("user", this.username);
             props.setProperty("password", this.password);
-//            props.setProperty("user", "postgres");
-//            props.setProperty("password", "post");
-//            props.setProperty("ssl", "true");
 
             this.conn = DriverManager.getConnection(this.url, props);
             this.md = conn.getMetaData();
@@ -62,7 +57,7 @@ public class ERModel {
 
             this.relations = collectUntypedRelations();
             if (entityRelations != null) {
-                setRelationsTypes(this.relations, this.entityRelations);
+                setRelationsTypes(this.relations, entityRelations);
             } else {
                 setRelationsTypes(this.relations);
             }
@@ -74,8 +69,6 @@ public class ERModel {
             this.entities = collectEntities(this.relations, this.ids);
             this.relationships = collectRelationships(this.relations, this.ids);
             this.hierarchies = collectGeneralizationHierarchies(this.relationships);
-
-//            setEntityTypeAttributes(this.entities, this.relations, this.relationships);
 
         } catch (SQLException e) {
             System.out.println("SQL Exception in ERModel: " + e.getMessage());
@@ -221,7 +214,7 @@ public class ERModel {
             q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
         }
 
-        // TODO: Nothing for Inclusion Relationships
+        // TODO: Add support for Inclusion Relationships (attributes from other tables via Inclusion Relationship)
 
         q.append('\n').append("WHERE ");
         q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn()).append(" IS NOT NULL");
@@ -262,7 +255,6 @@ public class ERModel {
             ArrayList<DataCell> row = new ArrayList<>();
 
             for (List<PrimaryAttribute> pAtts : pks) {
-                // TODO: check that the rs call is right
                 String firstKeyVal = String.valueOf(rs.getObject(getQueryName(pAtts.get(0))));
                 StringBuilder s = new StringBuilder(firstKeyVal);
 
@@ -279,7 +271,6 @@ public class ERModel {
             }
 
             for (Attribute att : atts) {
-                // TODO: check that the rs call is right
                 row.add(new DataCell(String.valueOf(rs.getObject(getQueryName(att))), att.getDBType().getDataType()));
             }
 
@@ -397,7 +388,7 @@ public class ERModel {
             HashSet<PrimaryAttribute> pk = pks.get(i);
             Optional<PrimaryAttribute> opPKAtt = pk.stream().findFirst();
             if (opPKAtt.isEmpty()) {
-                // TODO: Something is wrong with the database
+                // Something is wrong with the database
                 throw new SQLException("ERModel.collectUntypedRelations: Relation " + table + " has no primary key");
             }
 
@@ -610,8 +601,6 @@ public class ERModel {
             relation.setPrimaryKeyAtts(k1);
             relation.setGeneralKeys(k2);
         }
-
-        // TODO: Could use a condition checking if entityRelations are all classified
     }
 
     private HashMap<String, InclusionDependency> collectInclusionDependencies(HashMap<String, Relation> relations) {
@@ -694,7 +683,6 @@ public class ERModel {
     }
 
     public ArrayList<Object> getAllValues(Attribute a) throws SQLException {
-        // TODO: Could save this in attribute/inclusion dependency?
         Statement stmt = conn.createStatement();
 
         ArrayList<Object> vals = new ArrayList<>();
@@ -791,7 +779,6 @@ public class ERModel {
                 }
 
                 if (possibleOwners.size() > 0) {
-                    // TODO: if more than one possible, ask user
                     entities.put(relation.getName(), new WeakEntityType(relation, possibleOwners.stream().findFirst().get(), possibleOwners));
                 } else {
                     // Case for no possible owners
@@ -867,8 +854,6 @@ public class ERModel {
                 }
             }
 
-            // TODO: if more than one possible, ask user?? but why
-            // TODO: eg. airport has two potentials: island and city which are both binary relationships??? How to do this?
             if (potentialBinRelations.size() == 0) {
                 continue;
             }
@@ -888,7 +873,6 @@ public class ERModel {
         /* BINARY RELATIONSHIPS 2 */
         // An inclusion dependency exists between two non-key attributes A.x < B.y
         for (InclusionDependency id : ids.values()) {
-            // TODO: should this be for both non keys and foreign non keys or just non keys? I think both
             if ((id.getA().hasNonKey(id.getX1()) || id.getA().hasNonPKForeignKey(id.getX1()))
                     && (id.getB().hasNonKey(id.getX2()) || id.getA().hasNonPKForeignKey(id.getX2()))) {
                 String relName = BinaryRelationship.generateName(id.getA(), id.getB());
@@ -932,8 +916,8 @@ public class ERModel {
 
                 if (allAPksHaveIds) {
                     EntityType entPart = entities.get(relPart.getName());
-                    // TODO: entPart should exist but add a check maybe?
-                    //      > Also all entParts should be unique
+                    // entPart should exist
+                    //  > Also all entParts should be unique
                     relParts.add(entPart);
                 }
             }
@@ -942,7 +926,6 @@ public class ERModel {
 
             if (relPartsArr.size() == 1) {
                 // the relationship is to itself
-                // TODO: make relationships for two entity types
                 String name = relPartsArr.get(0).getName();
 
                 NAryRelationship newNAry = new NAryRelationship(rel, relations.get(name), relations.get(name));
@@ -1068,7 +1051,7 @@ public class ERModel {
                 continue;
             }
 
-            // This should exist is everything is correct TODO: check this
+            // This should exist is everything is correct
             Optional<Relationship> opRelationshipRel = relationships.stream()
                     .filter(r -> r instanceof NAryRelationship && r.getName().equals(rel.getName()))
                     .findFirst();

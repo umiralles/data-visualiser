@@ -22,8 +22,7 @@ public abstract class GoogleChart implements Chart {
     private final String divName;
 
     private DataTable dataTable;
-    private JSONObject options;
-    private JSONObject chartJson = null;
+    private final JSONObject options;
 
     protected GoogleChart(String divName, DataTable dataTable, JSONObject options) {
         this.divName = Objects.requireNonNull(divName);
@@ -50,10 +49,6 @@ public abstract class GoogleChart implements Chart {
     protected abstract String getId();
 
     public JSONObject getJson() {
-//        if (chartJson != null) {
-//            return chartJson;
-//        }
-
         JSONObject data = new JSONObject();
 
         data.put("div_name", divName)
@@ -61,7 +56,6 @@ public abstract class GoogleChart implements Chart {
                 .put("options", options)
                 .put("chart_type", getId());
 
-        this.chartJson = data;
         return data;
     }
 
@@ -198,10 +192,6 @@ public abstract class GoogleChart implements Chart {
         return false;
     }
 
-    protected void addColumn(Column newCol, List<DataCell> newColVals) {
-        this.dataTable = DataTable.getWithNewColumn(dataTable, newCol, newColVals);
-    }
-
     // Adds a new column where every value is the value of 'constant' and the column id is 'newColId'
     protected void addConstantColumn(String newColId, String label, int constant) {
         Column newCol = new Column(DataType.INT, newColId, label);
@@ -276,9 +266,7 @@ public abstract class GoogleChart implements Chart {
     protected void addColorsOption(String colourId, Color startColour, Color endColour) {
         List<String> hexColours = dataTable.getHexColoursFromId(colourId, startColour, endColour);
         if (hexColours == null) {
-            // TODO: error
-            System.out.println("Tried to add colours option to " + colourId);
-            return;
+            throw new IllegalArgumentException("Tried to add colours option to " + colourId);
         }
 
         options.put("colors", hexColours.toArray(new String[0]));
@@ -291,18 +279,14 @@ public abstract class GoogleChart implements Chart {
     protected void convertToColourStyleColumn(String colourId, Color startColour, Color endColour) {
         List<String> hexColours = dataTable.getHexColoursFromId(colourId, startColour, endColour);
         if (hexColours == null) {
-            // TODO: error
-            System.out.println("Tried to convert " + colourId + " to colour style column");
-            return;
+            throw new IllegalArgumentException("Tried to convert " + colourId + " to colour style column");
         }
 
         List<String> currOrder = dataTable.columns().stream().map(Column::id).collect(Collectors.toCollection(ArrayList::new));
         currOrder.remove(colourId);
         DataTable reOrdered = DataTable.getWithReOrderedColumns(dataTable, currOrder);
         if (reOrdered == null) {
-            // TODO: error
-            System.out.println("Tried to reorder while converting " + colourId + " to colour style column");
-            return;
+            throw new IllegalArgumentException("Tried to reorder while converting " + colourId + " to colour style column");
         }
 
         List<DataCell> styleColumn = hexColours.stream().map(hex -> new DataCell("color: " + hex, DataType.STRING)).toList();

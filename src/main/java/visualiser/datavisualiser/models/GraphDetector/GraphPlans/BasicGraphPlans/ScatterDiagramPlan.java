@@ -2,9 +2,9 @@ package visualiser.datavisualiser.models.GraphDetector.GraphPlans.BasicGraphPlan
 
 import visualiser.datavisualiser.models.Charts.Chart;
 import visualiser.datavisualiser.models.Charts.GoogleCharts.GoogleScatterChart;
+import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.ERModel.AttributeType;
 import visualiser.datavisualiser.models.ERModel.Keys.PrimaryKey;
-import visualiser.datavisualiser.models.DataTable.DataTable;
 import visualiser.datavisualiser.models.GraphDetector.GraphPlans.GraphAttribute;
 
 import java.util.List;
@@ -65,15 +65,15 @@ public class ScatterDiagramPlan extends BasicGraphPlan {
     @Override
     public Chart getChart(DataTable unprocessedData) {
         String labelId = getK1().toString();
-        String xAxisId = getOrderedMandatoryAtts().get(0).attribute().toString();
-        String yAxisId = getOrderedMandatoryAtts().get(1).attribute().toString();
+        String yAxisId = getOrderedMandatoryAtts().get(0).attribute().toString();
+        String xAxisId = getOrderedMandatoryAtts().get(1).attribute().toString();
 
         String colourId = null;
         if (!getOrderedMandatoryAtts().isEmpty() && getOrderedOptionalAtts().get(0).attribute() != null) {
             colourId = getOrderedOptionalAtts().get(0).attribute().toString();
         }
 
-        return new GoogleScatterChart(unprocessedData, labelId, xAxisId, yAxisId, colourId);
+        return new GoogleScatterChart(unprocessedData, labelId, yAxisId, xAxisId, colourId);
     }
 
 }

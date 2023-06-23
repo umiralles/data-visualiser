@@ -296,8 +296,7 @@ public class GraphDetector {
 
         if (data == null) {
             if (primaryKeys.isEmpty()) {
-                // TODO: error
-                return null;
+                throw new IllegalArgumentException("GraphDetector.getData: No primary keys found.");
             }
 
             // make a datatable based on the attributes
