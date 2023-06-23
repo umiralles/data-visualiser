@@ -275,9 +275,11 @@ public class DataModelController implements Initializable {
 
             /* Add appropriate attributes to addAttributes ChoiceBox */
             if (currVisPattern == VisSchemaPattern.BASIC_ENTITY) {
-                addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
+                Relation entityRel = rm.getRelation(selectedE1.getName());
+                addRelationToAttributesVBox(entityRel);
                 // Add attributes related to the relation via an inclusion relationship
-                for (Relation incRel : getInclusionRelationships(rm, rm.getRelation(selectedE1.getName()))) {
+                Map<Relation, InclusionRelationship> relatedIncs = rm.getRelatedInclusionRelationships(rm.getRelation(selectedE1.getName()));
+                for (Relation incRel : relatedIncs.keySet()) {
                     addRelationToAttributesVBox(incRel);
                 }
             } else if (currVisPattern == VisSchemaPattern.ONE_MANY_REL
@@ -285,7 +287,8 @@ public class DataModelController implements Initializable {
                 // Add attributes for child relation (A)
                 addRelationToAttributesVBox(currRelationship.getA());
                 // Add attributes related to the child relation via an inclusion relationship
-                for (Relation incRel : getInclusionRelationships(rm, currRelationship.getA())) {
+                Map<Relation, InclusionRelationship> relatedIncs = rm.getRelatedInclusionRelationships(currRelationship.getA());
+                for (Relation incRel : relatedIncs.keySet()) {
                     addRelationToAttributesVBox(incRel);
                 }
             } else {
@@ -298,27 +301,6 @@ public class DataModelController implements Initializable {
             /* Enable */
             genGraphsButton.setDisable(false);
         });
-    }
-
-    private Set<Relation> getInclusionRelationships(ERModel rm, Relation relation) {
-        Set<Relation> incRels = new HashSet<>();
-
-        for (Relation otherRelation : rm.getRelations().values()) {
-            InclusionRelationship incRel = rm.getInclusionRelationship(relation, otherRelation);
-            if (incRel == null) {
-                incRel = rm.getInclusionRelationship(otherRelation, relation);
-                if (incRel != null && incRel.isA()) {
-                    incRel = null;
-                }
-            }
-
-            if (incRel != null) {
-                incRels.add(otherRelation);
-                incRels.addAll(getInclusionRelationships(rm, otherRelation));
-            }
-        }
-
-        return incRels;
     }
 
     private List<Attribute> getCheckedAttributes() {

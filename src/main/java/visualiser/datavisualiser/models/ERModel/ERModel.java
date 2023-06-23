@@ -114,6 +114,38 @@ public class ERModel {
         return null;
     }
 
+    // Maps the related relation (that encompasses 'relation') to the inclusion relationship that relates it
+    public Map<Relation, InclusionRelationship> getRelatedInclusionRelationships(Relation relation) {
+        Map<Relation, InclusionRelationship> incRels = new HashMap<>();
+
+        for (Relation otherRelation : relations.values()) {
+            InclusionRelationship incRel = getInclusionRelationship(relation, otherRelation);
+            if (incRel == null) {
+                incRel = getInclusionRelationship(otherRelation, relation);
+                if (incRel != null && incRel.isA()) {
+                    incRel = null;
+                }
+            }
+
+            if (incRel != null) {
+                incRels.put(otherRelation, incRel);
+                incRels.putAll(getRelatedInclusionRelationships(otherRelation));
+            }
+        }
+
+        if (incRels.containsKey(relation)) {
+            InclusionRelationship rel = incRels.get(relation);
+            incRels.remove(relation);
+            Relation mapRel = rel.getB();
+            if (mapRel.equals(relation)) {
+                mapRel = rel.getA();
+            }
+            incRels.put(mapRel, rel);
+        }
+
+        return incRels;
+    }
+
     public BinaryRelationship getBinaryRelationship(Relation a, Relation b) {
         Relationship rel = relationships.get(BinaryRelationship.generateName(a, b));
 
@@ -207,8 +239,7 @@ public class ERModel {
         }
 
         q.append(" FROM ");
-        List<String> tables = attsList.stream().map(Attribute::getTable).distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
+        Set<String> tables = attsList.stream().map(Attribute::getTable).collect(Collectors.toSet());
 
         if (rel == null) {
             // Basic entity query needed, so no initial joins
@@ -218,7 +249,8 @@ public class ERModel {
             // Check for inclusion relationships
             if (tables.size() > 0) {
                 q.append('\n');
-                q.append(getInclusionRelationshipJoinQuery(getRelation(entity.getName()), tables));
+                q.append(getInclusionRelationshipJoinQuery(getRelation(entity.getName()),
+                        new HashSet<>(List.of(entity.getName())), tables));
             }
 
         } else if (rel instanceof BinaryRelationship binRel) {
@@ -232,7 +264,8 @@ public class ERModel {
             // Check for inclusion relationships
             if (tables.size() > 0) {
                 q.append('\n');
-                q.append(getInclusionRelationshipJoinQuery(binRel.getA(), tables));
+                q.append(getInclusionRelationshipJoinQuery(binRel.getA(),
+                        new HashSet<>(List.of(binRel.getA().getName(), binRel.getB().getName())), tables));
             }
 
         } else if (rel instanceof NAryRelationship nAryRel) {
@@ -248,11 +281,6 @@ public class ERModel {
             tables.remove(nAryRel.getB().getName());
         }
 
-        // Check for inclusion dependencies
-
-
-        // TODO: Add support for Inclusion Relationships (attributes from other tables via Inclusion Relationship)
-
         q.append('\n').append("WHERE ");
         q.append(attsList.get(0).getTable()).append('.').append(attsList.get(0).getColumn()).append(" IS NOT NULL");
         for (int i = 1; i < attsList.size(); i++) {
@@ -263,39 +291,49 @@ public class ERModel {
         return q.toString();
     }
 
-    private String getInclusionRelationshipJoinQuery(Relation relatedTo, List<String> tables) {
+    private String getInclusionRelationshipJoinQuery(Relation relatedTo, Set<String> joinedTables, Set<String> tables) {
         StringBuilder q = new StringBuilder();
 
-        List<String> joinedTables = new ArrayList<>();
-        List<String> extraTables = new ArrayList<>(tables);
-        for (String table : tables) {
-            InclusionRelationship incRel = getInclusionRelationship(relatedTo, getRelation(table));
-            if (incRel == null) {
-                incRel = getInclusionRelationship(getRelation(table), relatedTo);
-            }
+        Map<Relation, InclusionRelationship> relatedIncs = getRelatedInclusionRelationships(relatedTo);
 
-            if (incRel == null) {
-                continue;
-            }
+        Set<String> extraTables = new HashSet<>(tables);
+        int loopCount = 0;
+        do {
+            tables = new HashSet<>(extraTables);
+            for (String table : tables) {
+                Relation tableRelation = getRelation(table);
+                InclusionRelationship incRel = relatedIncs.get(tableRelation);
+                if (incRel == null) {
+                    throw new IllegalArgumentException("ERModel.getInclusionRelationshipQuery: no InclusionRelationship " +
+                            "found for table " + table);
+                }
 
-            extraTables.remove(table);
-            joinedTables.add(table);
-            // Inclusion relationships must have the same primary key
-            List<List<PrimaryAttribute>> bsToAs = incRel.getB().findSharedPrimaryAttributes(incRel.getA());
-            q.append(getInnerJoinQuery(incRel.getB().getName(), bsToAs.get(1), bsToAs.get(0))).append('\n');
+                Relation otherRelation = incRel.getB();
+                if (otherRelation.equals(tableRelation)) {
+                    otherRelation = incRel.getA();
+                }
+
+                if (!joinedTables.contains(otherRelation.getName())) {
+                    // this table does not connect directly, so add a connecting table
+                    extraTables.add(otherRelation.getName());
+                    loopCount++;
+                    continue;
+                }
+
+                extraTables.remove(table);
+                joinedTables.add(table);
+                // Inclusion relationships must have the same primary key
+                List<List<PrimaryAttribute>> bsToAs = incRel.getB().findSharedPrimaryAttributes(incRel.getA());
+                q.append(getInnerJoinQuery(incRel.getB().getName(), bsToAs.get(1), bsToAs.get(0))).append('\n');
+            }
+        } while (extraTables.size() > 0 && loopCount < 10000);
+
+        if (loopCount == 10000) {
+            StringBuilder message = new StringBuilder("ERModel.getInclusionRelationshipQuery: tables");
+            extraTables.forEach(table -> message.append(" ").append(table));
+            message.append(" could not be found related to ").append(relatedTo.getName());
+            throw new IllegalArgumentException(message.toString());
         }
-
-        if (extraTables.size() > 0) {
-            for (String joinedTable : joinedTables) {
-                q.append(getInclusionRelationshipJoinQuery(getRelation(joinedTable), extraTables));
-            }
-        }
-
-//        if (extraTables.size() > 0) {
-//            StringBuilder message = new StringBuilder("ERModel.getInclusionRelationshipQuery: no related table found for table(s)) ");
-//            tables.forEach(table -> message.append(" ").append(table));
-//            throw new IllegalArgumentException(message.toString());
-//        }
 
         return q.toString();
     }
