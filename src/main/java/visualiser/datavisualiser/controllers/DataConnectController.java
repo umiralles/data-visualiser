@@ -24,7 +24,7 @@ public class DataConnectController {
 
     @FXML
     protected void onConnectButtonClick() {
-        // TODO: fix this https://stackoverflow.com/questions/14154474/javafx-change-text-before-and-after-run-task
+        // TODO: could be with https://stackoverflow.com/questions/14154474/javafx-change-text-before-and-after-run-task
         connectingText.setText("Connecting and processing...");
 
         try {
