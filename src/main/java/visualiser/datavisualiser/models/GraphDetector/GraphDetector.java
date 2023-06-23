@@ -300,7 +300,7 @@ public class GraphDetector {
             }
 
             // make a datatable based on the attributes
-            this.data = loadData(rm, relationship, pattern, new HashSet<>(primaryKeys), attributes);
+            this.data = loadData(rm, entity, relationship, pattern, new HashSet<>(primaryKeys), attributes);
         }
 
         if (primaryKeys.size() == 1) {
@@ -385,9 +385,9 @@ public class GraphDetector {
         return true;
     }
 
-    public static DataTable loadData(ERModel rm, Relationship relationship, VisSchemaPattern pattern,
+    public static DataTable loadData(ERModel rm, EntityType entity, Relationship relationship, VisSchemaPattern pattern,
                                      Set<PrimaryKey> primaryKeys, Set<Attribute> attributes) throws SQLException {
-        return rm.getDataTableWithAttributes(relationship, pattern, primaryKeys, attributes);
+        return rm.getDataTableWithAttributes(entity, relationship, pattern, primaryKeys, attributes);
     }
 
     public static DataTable loadData(ERModel rm, EntityType entity, Relationship relationship, VisSchemaPattern pattern,
@@ -400,6 +400,6 @@ public class GraphDetector {
             primaryKeys.add(relationship.getB().getPrimaryKey());
         }
 
-        return loadData(rm, relationship, pattern, primaryKeys, attributes);
+        return loadData(rm, entity, relationship, pattern, primaryKeys, attributes);
     }
 }

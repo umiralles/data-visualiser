@@ -104,6 +104,16 @@ public class ERModel {
         return relationships;
     }
 
+    public InclusionRelationship getInclusionRelationship(Relation a, Relation b) {
+        Relationship rel = relationships.get(InclusionRelationship.generateName(a, b));
+
+        if (rel instanceof InclusionRelationship incRel) {
+            return incRel;
+        }
+
+        return null;
+    }
+
     public BinaryRelationship getBinaryRelationship(Relation a, Relation b) {
         Relationship rel = relationships.get(BinaryRelationship.generateName(a, b));
 
@@ -140,7 +150,7 @@ public class ERModel {
         conn.close();
     }
 
-    public DataTable getDataTableWithAttributes(Relationship rel, VisSchemaPattern pattern,
+    public DataTable getDataTableWithAttributes(EntityType entity, Relationship rel, VisSchemaPattern pattern,
                                                 Set<PrimaryKey> pks, Set<Attribute> atts) throws SQLException {
         List<PrimaryKey> pksList = new ArrayList<>(pks);
         List<List<PrimaryAttribute>> pkAtts = new ArrayList<>();
@@ -180,12 +190,12 @@ public class ERModel {
         Set<Attribute> queryAtts = new HashSet<>(atts);
         pkAtts.forEach(queryAtts::addAll);
 
-        List<List<DataCell>> rows = getRowsFromQueryAndAtts(generateQuery(rel, queryAtts), pkAtts, new ArrayList<>(atts));
+        List<List<DataCell>> rows = getRowsFromQueryAndAtts(generateQuery(entity, rel, queryAtts), pkAtts, new ArrayList<>(atts));
 
         return new DataTable(columns, rows);
     }
 
-    private String generateQuery(Relationship rel, Set<Attribute> atts) {
+    private String generateQuery(EntityType entity, Relationship rel, Set<Attribute> atts) {
         List<Attribute> attsList = new ArrayList<>(atts);
 
         StringBuilder q = new StringBuilder("SELECT ");
@@ -197,16 +207,33 @@ public class ERModel {
         }
 
         q.append(" FROM ");
+        List<String> tables = attsList.stream().map(Attribute::getTable).distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
 
         if (rel == null) {
-            // Basic entity query needed, so no joins
-            q.append(schemaPattern).append('.').append(attsList.get(0).getTable());
+            // Basic entity query needed, so no initial joins
+            q.append(schemaPattern).append('.').append(entity.getName());
+            tables.remove(entity.getName());
+
+            // Check for inclusion relationships
+            if (tables.size() > 0) {
+                q.append('\n');
+                q.append(getInclusionRelationshipJoinQuery(getRelation(entity.getName()), tables));
+            }
 
         } else if (rel instanceof BinaryRelationship binRel) {
             q.append(schemaPattern).append('.').append(binRel.getA().getName()).append('\n');
             List<List<Attribute>> bsToAs = binRel.getB().findAttsExportedTo(binRel.getA());
 
             q.append(getInnerJoinQuery(binRel.getB().getName(), bsToAs.get(1), bsToAs.get(0)));
+            tables.remove(binRel.getA().getName());
+            tables.remove(binRel.getB().getName());
+
+            // Check for inclusion relationships
+            if (tables.size() > 0) {
+                q.append('\n');
+                q.append(getInclusionRelationshipJoinQuery(binRel.getA(), tables));
+            }
 
         } else if (rel instanceof NAryRelationship nAryRel) {
             q.append(schemaPattern).append('.').append(nAryRel.getA().getName()).append('\n');
@@ -216,7 +243,13 @@ public class ERModel {
 
             q.append(getInnerJoinQuery(nAryRel.getRelationshipRelation().getName(), aToRels.get(0), aToRels.get(1))).append('\n');
             q.append(getInnerJoinQuery(nAryRel.getB().getName(), bToRels.get(1), bToRels.get(0)));
+            tables.remove(nAryRel.getA().getName());
+            tables.remove(nAryRel.getRelationshipRelation().getName());
+            tables.remove(nAryRel.getB().getName());
         }
+
+        // Check for inclusion dependencies
+
 
         // TODO: Add support for Inclusion Relationships (attributes from other tables via Inclusion Relationship)
 
@@ -230,10 +263,48 @@ public class ERModel {
         return q.toString();
     }
 
+    private String getInclusionRelationshipJoinQuery(Relation relatedTo, List<String> tables) {
+        StringBuilder q = new StringBuilder();
+
+        List<String> joinedTables = new ArrayList<>();
+        List<String> extraTables = new ArrayList<>(tables);
+        for (String table : tables) {
+            InclusionRelationship incRel = getInclusionRelationship(relatedTo, getRelation(table));
+            if (incRel == null) {
+                incRel = getInclusionRelationship(getRelation(table), relatedTo);
+            }
+
+            if (incRel == null) {
+                continue;
+            }
+
+            extraTables.remove(table);
+            joinedTables.add(table);
+            // Inclusion relationships must have the same primary key
+            List<List<PrimaryAttribute>> bsToAs = incRel.getB().findSharedPrimaryAttributes(incRel.getA());
+            q.append(getInnerJoinQuery(incRel.getB().getName(), bsToAs.get(1), bsToAs.get(0))).append('\n');
+        }
+
+        if (extraTables.size() > 0) {
+            for (String joinedTable : joinedTables) {
+                q.append(getInclusionRelationshipJoinQuery(getRelation(joinedTable), extraTables));
+            }
+        }
+
+//        if (extraTables.size() > 0) {
+//            StringBuilder message = new StringBuilder("ERModel.getInclusionRelationshipQuery: no related table found for table(s)) ");
+//            tables.forEach(table -> message.append(" ").append(table));
+//            throw new IllegalArgumentException(message.toString());
+//        }
+
+        return q.toString();
+    }
+
     //  joinTable:          table to inner join on
     //  viaTableAttributes: original table attributes
     //  viaJoinAttributes:  joinTable attributes corresponding to the viaTableAttributes
-    private String getInnerJoinQuery(String joinTable, List<Attribute> viaTableAttributes, List<Attribute> viaJoinAttributes) {
+    private String getInnerJoinQuery(String joinTable, List<? extends Attribute> viaTableAttributes,
+                                     List<? extends Attribute> viaJoinAttributes) {
         StringBuilder q = new StringBuilder("INNER JOIN ");
         q.append(schemaPattern).append(".").append(joinTable).append('\n').append("ON ");
         q.append(viaTableAttributes.get(0)).append(" = ").append(viaJoinAttributes.get(0));

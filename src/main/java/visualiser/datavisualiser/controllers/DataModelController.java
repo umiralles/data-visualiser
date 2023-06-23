@@ -21,6 +21,7 @@ import visualiser.datavisualiser.models.ERModel.Entities.WeakEntityType;
 import visualiser.datavisualiser.models.ERModel.Keys.Attribute;
 import visualiser.datavisualiser.models.ERModel.Relations.Relation;
 import visualiser.datavisualiser.models.ERModel.Relationships.BinaryRelationship;
+import visualiser.datavisualiser.models.ERModel.Relationships.InclusionRelationship;
 import visualiser.datavisualiser.models.ERModel.Relationships.NAryRelationship;
 import visualiser.datavisualiser.models.ERModel.Relationships.Relationship;
 import visualiser.datavisualiser.models.GraphDetector.GraphDetector;
@@ -117,30 +118,6 @@ public class DataModelController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         User user = ViewUtils.receiveData();
         ERModel rm = user.getERModel();
-
-        /* CHECK FOR RELATIONSHIPS FUNCTIONALITY */
-//        EntityType city = rm.getEntity("city");
-//        PrimaryAttribute cPk = country.getPrimaryAttributes().stream().findFirst().get();
-//        EntityType waterbody = rm.getEntity("waterbody");
-//        PrimaryAttribute pPk = province.getPrimaryAttributes().stream().findFirst().get();
-//
-//        ArrayList<BinaryRelationship> binRelationships = rm.getRelationships().values().stream().filter(ent -> ent instanceof BinaryRelationship)
-//                .map(ent -> (BinaryRelationship) ent)
-//                .sorted(Comparator.comparing((Relationship rel) -> rel.getA().getName())).collect(Collectors.toCollection(ArrayList::new));
-//
-//        ArrayList<String> binRelStr = binRelationships.stream()
-//                .map(br -> "(1/0:1) " + br.getA().getName() + "." + br.getX1().getColumn() + " < " + br.getB().getName() + "." + br.getX2().getColumn() + " (0:N)")
-//                .collect(Collectors.toCollection(ArrayList::new));
-
-//        ArrayList<NAryRelationship> nAryRelationships = rm.getRelationships().values().stream().filter(ent -> ent instanceof NAryRelationship)
-//                .map(ent -> (NAryRelationship) ent)
-//                .sorted(Comparator.comparing((Relationship rel) -> rel.getB().getName())).collect(Collectors.toCollection(ArrayList::new));
-//
-//        ArrayList<String> nAryRelStr = nAryRelationships.stream()
-//                .map(nar -> nar.getA().getName() + " " + nar.getName().toUpperCase() + " " + nar.getB().getName())
-//                .collect(Collectors.toCollection(ArrayList::new));
-//
-//        Relationship r = checkForRelationship(rm, city, waterbody);
 
         ArrayList<EntityType> entities = rm.getEntities().values().stream()
                 .sorted(Comparator.comparing(EntityType::getName)).collect(Collectors.toCollection(ArrayList::new));
@@ -297,13 +274,20 @@ public class DataModelController implements Initializable {
             }
 
             /* Add appropriate attributes to addAttributes ChoiceBox */
-            // TODO: Add Inclusion Relationships attributes here
             if (currVisPattern == VisSchemaPattern.BASIC_ENTITY) {
                 addRelationToAttributesVBox(rm.getRelation(selectedE1.getName()));
+                // Add attributes related to the relation via an inclusion relationship
+                for (Relation incRel : getInclusionRelationships(rm, rm.getRelation(selectedE1.getName()))) {
+                    addRelationToAttributesVBox(incRel);
+                }
             } else if (currVisPattern == VisSchemaPattern.ONE_MANY_REL
                     || currVisPattern == VisSchemaPattern.WEAK_ENTITY) {
                 // Add attributes for child relation (A)
                 addRelationToAttributesVBox(currRelationship.getA());
+                // Add attributes related to the child relation via an inclusion relationship
+                for (Relation incRel : getInclusionRelationships(rm, currRelationship.getA())) {
+                    addRelationToAttributesVBox(incRel);
+                }
             } else {
                 // Many-Many or Reflexive
                 addRelationToAttributesVBox(((NAryRelationship) currRelationship).getRelationshipRelation());
@@ -314,6 +298,27 @@ public class DataModelController implements Initializable {
             /* Enable */
             genGraphsButton.setDisable(false);
         });
+    }
+
+    private Set<Relation> getInclusionRelationships(ERModel rm, Relation relation) {
+        Set<Relation> incRels = new HashSet<>();
+
+        for (Relation otherRelation : rm.getRelations().values()) {
+            InclusionRelationship incRel = rm.getInclusionRelationship(relation, otherRelation);
+            if (incRel == null) {
+                incRel = rm.getInclusionRelationship(otherRelation, relation);
+                if (incRel != null && incRel.isA()) {
+                    incRel = null;
+                }
+            }
+
+            if (incRel != null) {
+                incRels.add(otherRelation);
+                incRels.addAll(getInclusionRelationships(rm, otherRelation));
+            }
+        }
+
+        return incRels;
     }
 
     private List<Attribute> getCheckedAttributes() {
