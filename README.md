@@ -8,3 +8,10 @@ Extract the correct zipped folder from the release and run the following command
 ```
 java --module-path ./lib --add-modules javafx.controls,javafx.fxml,javafx.web -jar data-visualiser.jar
 ```
+
+## Connecting to a database
+Once the app is running, the correct format of database information is:
+- **URL:** jdbc:postgresql://localhost/database_name
+- **Username:** username
+- **Password:** password
+- **Schema:** public
