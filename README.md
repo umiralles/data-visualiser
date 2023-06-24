@@ -1,5 +1,5 @@
 # data-visualiser
-A tool for easily generating visualisations from a database.
+A tool for easily generating visualisations from a database. A conceptual model is used to generate suggestions for an appropriate chart based on the selected information.
 
 ## To run from a release (v0.3+)
 - Java 20 must be used when running the application.
